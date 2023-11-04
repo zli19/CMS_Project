@@ -5,3 +5,4 @@ tailwind.config.js
 src/
 composer.*
 vendor/
+faker.php

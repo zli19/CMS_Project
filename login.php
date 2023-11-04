@@ -55,13 +55,20 @@ function storeForm()
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="https://unpkg.com/mvp.css">
+    <title>Molijun Inn</title>
+    <link rel="stylesheet" href="main.css">
 </head>
 
-<body>
-    <header>
-        <h1>Molijun Inn</h1>
+<body class="box-border">
+    </header class="flex justify-center py-4">
+    <nav class="flex justify-between w-4/5 max-w-5xl">
+        <a href="./index.php" style="text-decoration: none; color: black;">
+            <h1 class="text-2xl font-bold">Molijun Inn</h1>
+        </a>
+        <ul>
+            <li><a href="./login.php"><b class="px-6 py-2 border rounded">Sign in</b></a></li>
+        </ul>
+    </nav>
     </header>
     <main>
         <section>
