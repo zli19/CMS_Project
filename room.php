@@ -1,5 +1,8 @@
 <?php
 
+session_start();
+require('./auth.php');
+
 if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
     require('./connect.php');
     require('./models/Room.php');
