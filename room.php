@@ -1,48 +1,26 @@
 <?php
 
 session_start();
-require('./auth.php');
 
 if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
-    require('./connect.php');
-    require('./models/Room.php');
     $id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT);
 
-    $queryRoom = "SELECT * FROM rooms WHERE room_id = :room_id";
-    try {
-        $statement = $db->prepare($queryRoom);
-        $statement->execute(['room_id' => $id]);
-        $statement->setFetchMode(PDO::FETCH_CLASS, 'Room');
-        $room = $statement->fetch();
+    require('./models/Room.php');
 
-        if ($room) {
-            // Get the statistic of the room
-            $queryStat = 'SELECT COUNT(1) AS total, ROUND(AVG(r.star_rating),1) AS avg FROM reviews r WHERE r.room_id = :room_id';
-            try {
-                $statement = $db->prepare($queryStat);
-                $statement->execute(['room_id' => $id]);
-                $stat = $statement->fetch();
-            } catch (PDOException $e) {
-                exit($e->getMessage());
-            }
+    $room = Room::queryRoomById($id);
 
-            require('./models/Review.php');
-            $queryReview = 'SELECT r.review_id, r.user_id, u.user_name, r.room_id, r.review_content, r.star_rating, r.created_at, re.reply_id, re.reply_content FROM reviews r JOIN users u ON r.user_id = u.user_id LEFT JOIN replies re ON r.review_id = re.review_id WHERE r.room_id = :room_id';
-            // code for ordering result goes here to modify the above query
+    if ($room) {
+        // Get the statistic of the room
+        $stat = Room::queryRoomStatById($id);
 
-            try {
-                $statement = $db->prepare($queryReview);
-                $statement->execute(['room_id' => $id]);
-                $statement->setFetchMode(PDO::FETCH_CLASS, 'Review');
-            } catch (PDOException $e) {
-                exit($e->getMessage());
-            }
-        } else {
-            header("Location: index.php");
-            exit;
-        }
-    } catch (PDOException $e) {
-        exit($e->getMessage());
+        require('./models/Review.php');
+        // code for orderBy goes here
+        $orderBy = [];
+
+        $reviews = Review::queryReviewsByRoomIdWithOrderBy($id, $orderBy);
+    } else {
+        header("Location: index.php");
+        exit;
     }
 } else {
     header("Location: index.php");
@@ -128,7 +106,7 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
                         </div>
                     </div>
                 </li>
-                <?php while ($review = $statement->fetch()) : ?>
+                <?php foreach ($reviews as $review) : ?>
                     <li class="grid grid-cols-4 mb-4">
                         <div class="col-span-1">
                             <div class="flex justify-start items-end">
@@ -160,7 +138,7 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
                             <div class="hidden review_form"></div>
                         </div>
                     </li>
-                <?php endwhile ?>
+                <?php endforeach ?>
             </ul>
         </section>
     </main>

@@ -10,27 +10,21 @@ class User
 
     static function queryUserByEmail(string $email)
     {
-        require('./connect.php');
+        require_once('./db/DBConnection.php');
 
-        $query = 'SELECT * FROM users WHERE email = :email';
+        $db = new DBConnection();
 
-        $statement = $db->prepare($query);
-        $statement->execute(['email' => $email]);
-        $statement->setFetchMode(PDO::FETCH_CLASS, 'User');
-        $user = $statement->fetch();
+        $user = $db->queryObjectByAttribute('email', $email, 'User');
         return $user;
     }
 
     static function queryUserById(int $id)
     {
-        require('./connect.php');
+        require_once('./db/DBConnection.php');
 
-        $query = 'SELECT * FROM users WHERE user_id = :user_id';
+        $db = new DBConnection();
 
-        $statement = $db->prepare($query);
-        $statement->execute(['user_id' => $id]);
-        $statement->setFetchMode(PDO::FETCH_CLASS, 'User');
-        $user = $statement->fetch();
+        $user = $db->queryObjectByAttribute('user_id', $id, 'User');
         return $user;
     }
 }

@@ -10,36 +10,31 @@ class Token
 
     static function queryTokenByTokenNO(string $token)
     {
-        require('./connect.php');
+        require_once('./db/DBConnection.php');
 
-        $query = 'SELECT * FROM tokens WHERE token_no = :token_no';
+        $db = new DBConnection();
 
-        $statement = $db->prepare($query);
-        $statement->execute(['token_no' => $token]);
-        $statement->setFetchMode(PDO::FETCH_CLASS, 'Token');
-        $token = $statement->fetch();
+        $token = $db->queryObjectByAttribute('token_no', $token, 'Token');
         return $token;
     }
 
     static function insert($token)
     {
-        require('./connect.php');
+        require_once('./db/DBConnection.php');
 
-        $query = 'INSERT INTO tokens(user_id, token_no, expiry_date) values(:user_id, :token_no, :expiry_date)';
+        $db = new DBConnection();
 
-        $statement = $db->prepare($query);
-        $result = $statement->execute(['user_id' => $token->user_id, 'token_no' => $token->token_no, 'expiry_date' => $token->expiry_date]);
+        $result = $db->insertObject(['user_id' => $token->user_id, 'token_no' => $token->token_no, 'expiry_date' => $token->expiry_date], 'Token');
         return $result;
     }
 
     static function markAsExpiredById(int $id)
     {
-        require('./connect.php');
+        require_once('./db/DBConnection.php');
 
-        $query = 'UPDATE tokens SET is_expired = 1 WHERE token_id = :token_id';
+        $db = new DBConnection();
 
-        $statement = $db->prepare($query);
-        $result = $statement->execute(['token_id' => $id]);
+        $result = $db->updateObjectByAttribute('token_id', $id, ['is_expired' => 1], 'Token');
         return $result;
     }
 }

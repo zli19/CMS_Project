@@ -7,12 +7,7 @@ class Auth
 {
     function authenticateUser(string $email, string $password)
     {
-
-        try {
-            $user = User::queryUserByEmail($email);
-        } catch (PDOException $e) {
-            exit($e->getMessage());
-        }
+        $user = User::queryUserByEmail($email);
 
         if ($user && password_verify($password, $user->password)) {
             return $user;
@@ -30,11 +25,7 @@ class Auth
         if (!empty($_COOKIE['user_token'])) {
 
             // fetch the token object from db
-            try {
-                $token = Token::queryTokenByTokenNO($_COOKIE['user_token']);
-            } catch (PDOException $e) {
-                exit($e->getMessage());
-            }
+            $token = Token::queryTokenByTokenNO($_COOKIE['user_token']);
 
             // check if token is valid
             if (
@@ -43,11 +34,7 @@ class Auth
             ) {
                 if ($token->expiry_date >= date("Y-m-d H:i:s", time())) {
                     // fetch user information using the token
-                    try {
-                        $user = User::queryUserById($token->user_id);
-                    } catch (PDOException $e) {
-                        exit($e->getMessage());
-                    }
+                    $user = User::queryUserById($token->user_id);
 
                     if ($user) {
                         // set $_SESSION to store logged-in state
@@ -59,7 +46,6 @@ class Auth
                 }
             }
         }
-
         return false;
     }
 
@@ -81,20 +67,14 @@ class Auth
         $token->user_id = $user->user_id;
         $token->token_no = $token_no;
         $token->expiry_date = date("Y-m-d H:i:s", $tokenExpiryTime);
-        try {
-            Token::insert($token);
-        } catch (PDOException $e) {
-            exit($e->getMessage());
-        }
+
+        Token::insert($token);
     }
 
     function clearCookieAndToken(int $token_id)
     {
         setcookie('user_token', '', time() - 3600);
-        try {
-            Token::markAsExpiredById($token_id);
-        } catch (PDOException $e) {
-            exit($e->getMessage());
-        }
+
+        Token::markAsExpiredById($token_id);
     }
 }
