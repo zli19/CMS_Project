@@ -46,6 +46,16 @@ const toggleForm = (id, type) => {
     let review_content = info.querySelector(".review_content").innerHTML;
     children[1].value = star_rating;
     children[2].value = review_content;
+    children[5].name = "update";
+    children[5].value = "update";
+
+    // create a delete submit input
+    const deleteBtn = document.createElement("input");
+    deleteBtn.setAttribute("type", "submit");
+    deleteBtn.setAttribute("name", "delete");
+    deleteBtn.setAttribute("value", "delete");
+    deleteBtn.setAttribute("class", "btn");
+    formClone.appendChild(deleteBtn);
 
     // Create a hidden input element to store the review_id.
     const reviewIdInput = document.createElement("input");

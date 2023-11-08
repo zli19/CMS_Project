@@ -61,7 +61,7 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
     <link rel="stylesheet" href="main.css">
 </head>
 
-<body class="box-border">
+<body class="box-border bg-gray-100">
     <header class="flex justify-center py-4">
         <nav class="flex justify-between w-4/5 max-w-5xl">
             <a href="./index.php" style="text-decoration: none; color: black;">
@@ -73,6 +73,7 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
         </nav>
     </header>
     <main>
+        <pre><?= var_dump($_POST) ?></pre>
         <section class="flex flex-col items-center px-4 py-8">
             <div class="w-4/5 max-w-5xl grid grid-cols-5 gap-8">
                 <div class="col-span-3 rounded-md overflow-hidden"><img src="./images/room1.jpg" alt=""></div>
@@ -90,8 +91,8 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
                                 <textarea class="w-full border border-gray-300 rounded" name="description" rows="8"><?= $room->description ?></textarea>
                                 <div>Pictures go here...</div>
                                 <input type='file' name='images[]' id='image' multiple>
-                                <button type="submit" class="btn">Submit</button>
-                                <button type="submit" class="btn">Delete</button>
+                                <input type="submit" class="btn" name="update" value="update" />
+                                <input type="submit" class="btn" name="delete" value="delete" />
                             </form>
                         </div>
                     </div>
@@ -104,7 +105,7 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
         <section class="flex justify-center px-4 py-8">
             <ul class="w-4/5 max-w-5xl">
                 <li class="mb-4">
-                    <div class="mb-4"><button id="create" class="btn">Create</button></div>
+                    <div class="mb-4"><button id="create" class="btn edit">Create</button></div>
                     <div id="createForm" class="hidden">
                         <div class="grid grid-cols-4">
                             <div class="col-span-1">
@@ -121,7 +122,7 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
                                     <textarea class="w-full border border-gray-300 rounded" name="review_content" rows="5" placeholder="Write a comment about your stay..."></textarea>
                                     <div>Pictures go here...</div>
                                     <input type='file' name='images[]' id='image' multiple>
-                                    <button type="submit" class="btn edit">Submit</button>
+                                    <input type="submit" class="btn" name="insert" value="submit" />
                                 </form>
                             </div>
                         </div>
@@ -151,7 +152,7 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
                                         <form method="post">
                                             <input type="hidden" name="review_id" value="<?= $review->review_id ?>">
                                             <textarea class="w-full border border-gray-300 rounded" name="reply_content" rows="3"></textarea>
-                                            <button type="submit" class="btn">submit</button>
+                                            <input type="submit" class="btn" name="insert" value="submit" />
                                         </form>
                                     </div>
                                 </div>

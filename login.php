@@ -2,6 +2,12 @@
 
 session_start();
 
+require('./auth.php');
+$auth = new Auth();
+$isLoggedIn = $auth->isLoggedIn();
+if ($isLoggedIn) {
+    header('Location: index.php');
+}
 
 if (
     $_POST &&
@@ -16,22 +22,10 @@ if (
         exit;
     }
 
-    require('./connect.php');
-    require('./models/User.php');
-    $query = 'SELECT * FROM users WHERE email = :email';
-    try {
-        $statement = $db->prepare($query);
-        $statement->execute(['email' => $email]);
-        $statement->setFetchMode(PDO::FETCH_CLASS, 'User');
-        $user = $statement->fetch();
-    } catch (PDOException $e) {
-        exit($e->getMessage());
-    }
-
-    $authPassed = $user && password_verify($_POST['password'], $user->password);
-    if ($authPassed) {
-        $_SESSION['user'] = $user;
-        setcookie('');
+    $user = $auth->authenticateUser($email, $_POST['password']);
+    if ($user) {
+        $auth->setLoginState($user);
+        $auth->setCookieAndToken($user);
         header('Location: index.php');
         exit;
     } else {
@@ -60,7 +54,7 @@ function storeForm()
     <link rel="stylesheet" href="main.css">
 </head>
 
-<body class="box-border">
+<body class="box-border bg-gray-100">
     <header class="flex justify-center py-4">
         <nav class="flex justify-between w-4/5 max-w-5xl">
             <a href="./index.php" style="text-decoration: none; color: black;">
@@ -71,7 +65,7 @@ function storeForm()
     <main>
         <section class="flex flex-col items-center px-4 py-8">
             <div class="max-w-md w-72">
-                <form class="bg-gray-100 p-8 w-full rounded shadow-sm hover:shadow-md" action=" login.php" method="POST">
+                <form class="bg-white p-8 w-full rounded shadow-sm hover:shadow-md" action=" login.php" method="POST">
                     <header class="mb-4 p-8">
                         <h2 class="text-xl font-bold">Login</h2>
                     </header>
@@ -80,15 +74,15 @@ function storeForm()
                         <?php unset($_SESSION['login_error']) ?>
                     <?php endif ?>
                     <label class="block mb-2" for="email">Email</label>
-                    <input class="block mb-2 w-full" type="email" id="email" name="email" value="<?php if (isset($_SESSION['email'])) {
-                                                                                                        echo ($_SESSION['email']);
-                                                                                                        unset($_SESSION['email']);
-                                                                                                    } ?>">
+                    <input class="bg-gray-100 block mb-2 w-full" type="email" id="email" name="email" value="<?php if (isset($_SESSION['email'])) {
+                                                                                                                    echo ($_SESSION['email']);
+                                                                                                                    unset($_SESSION['email']);
+                                                                                                                } ?>">
                     <label class="block mb-2" for=" password">Password</label>
-                    <input class="block mb-8 w-full" type="password" id="password" name="password" value="<?php if (isset($_SESSION['password'])) {
-                                                                                                                echo ($_SESSION['password']);
-                                                                                                                unset($_SESSION['password']);
-                                                                                                            } ?>">
+                    <input class="bg-gray-100 block mb-8 w-full" type="password" id="password" name="password" value="<?php if (isset($_SESSION['password'])) {
+                                                                                                                            echo ($_SESSION['password']);
+                                                                                                                            unset($_SESSION['password']);
+                                                                                                                        } ?>">
                     <button class="btn" type="submit">Submit</button>
                 </form>
             </div>
