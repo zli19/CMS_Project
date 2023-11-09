@@ -8,7 +8,7 @@ class Token
     public int $is_expired;
     public string $expiry_date;
 
-    static function queryTokenByTokenNO(string $token)
+    static function queryTokenByTokenNo(string $token)
     {
         require_once('./db/DBConnection.php');
 
@@ -28,13 +28,12 @@ class Token
         return $result;
     }
 
-    static function markAsExpiredById(int $id)
+    static function markAsExpiredByTokenNo(string $token_no)
     {
         require_once('./db/DBConnection.php');
 
         $db = new DBConnection();
-
-        $result = $db->updateObjectByAttribute('token_id', $id, ['is_expired' => 1], 'Token');
+        $result = $db->updateObjectByAttribute('token_no', $token_no, ['is_expired' => 1], 'Token');
         return $result;
     }
 }

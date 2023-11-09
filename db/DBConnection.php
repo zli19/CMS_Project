@@ -52,7 +52,7 @@ class DBConnection
         $query = "SELECT * FROM {$tableName} WHERE {$columnName} = :{$columnName}";
         try {
             $statement = $this->db->prepare($query);
-            $statement->execute(["{$columnName}" => $value]);
+            $statement->execute([$columnName => $value]);
             $statement->setFetchMode(PDO::FETCH_CLASS, "{$className}");
             $object = $statement->fetch();
             return $object;
@@ -96,15 +96,15 @@ class DBConnection
     {
         $tableName = strtolower($className) . 's';
         $setString = '';
-        foreach ($setKeyValuePairs as $key => $value) {
-            $setString .= $key . ' = ' . $value . ', ';
+        foreach ($setKeyValuePairs as $key => $val) {
+            $setString .= $key . ' = ' . $val . ', ';
         }
         $setString = substr($setString, 0, -2);
 
         $query = "UPDATE {$tableName} SET {$setString} WHERE {$columnName} = :{$columnName}";
         try {
             $statement = $this->db->prepare($query);
-            $result = $statement->execute(["{$columnName}" => $value]);
+            $result = $statement->execute([$columnName => $value]);
             return $result;
         } catch (PDOException $e) {
             exit($e->getMessage());

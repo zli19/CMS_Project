@@ -1,9 +1,12 @@
 // Add functionality to the create button to toggle the createForm
 let createBtn = document.getElementById("create");
 let createForm = document.getElementById("createForm");
-createBtn.addEventListener("click", () => {
-  createForm.classList.toggle("hidden");
-});
+
+if (createBtn) {
+  createBtn.addEventListener("click", () => {
+    createForm.classList.toggle("hidden");
+  });
+}
 
 // Toggle the innerHTML of the edit button between "Edit" and "Cancel Edit"
 let buttons = document.getElementsByClassName("edit");
@@ -15,8 +18,10 @@ const onclick = (e) => {
     e.target.innerHTML = "Cancel " + before;
   }
 };
-for (let button of buttons) {
-  button.addEventListener("click", onclick);
+if (buttons.length > 0) {
+  for (let button of buttons) {
+    button.addEventListener("click", onclick);
+  }
 }
 
 // The method to toggle a review in display to a edit form back and forth.
