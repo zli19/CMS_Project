@@ -60,6 +60,7 @@ const toggleForm = (id, type) => {
     deleteBtn.setAttribute("name", "delete");
     deleteBtn.setAttribute("value", "delete");
     deleteBtn.setAttribute("class", "btn");
+    deleteBtn.addEventListener("click", (e) => handleDelete(e, "review"));
     formClone.appendChild(deleteBtn);
 
     // Create a hidden input element to store the review_id.
@@ -74,4 +75,18 @@ const toggleForm = (id, type) => {
   } else {
     // type === "reply"
   }
+};
+
+const handleChange = () => {
+  document.getElementById("sortForm").submit();
+};
+
+const handleDelete = (event, name) => {
+  if (name === "review")
+    message = "You are going to delete this review. Are you sure?";
+  if (name === "room")
+    message =
+      "You are going to delete this room and its existing reviews. Are you sure?";
+  result = confirm(message);
+  if (!result) event.preventDefault();
 };

@@ -97,11 +97,26 @@ class DBConnection
         $tableName = strtolower($className) . 's';
         $setString = '';
         foreach ($setKeyValuePairs as $key => $val) {
-            $setString .= $key . ' = ' . $val . ', ';
+            $setString .= "{$key} = '{$val}', ";
         }
         $setString = substr($setString, 0, -2);
 
         $query = "UPDATE {$tableName} SET {$setString} WHERE {$columnName} = :{$columnName}";
+        var_dump($query);
+        try {
+            $statement = $this->db->prepare($query);
+            $result = $statement->execute([$columnName => $value]);
+            return $result;
+        } catch (PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    function deleteObjectByAttribute(string $columnName, mixed $value, string $className)
+    {
+        $tableName = strtolower($className) . 's';
+
+        $query = "DELETE FROM {$tableName} WHERE {$columnName} = :{$columnName}";
         try {
             $statement = $this->db->prepare($query);
             $result = $statement->execute([$columnName => $value]);

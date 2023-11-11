@@ -2,7 +2,7 @@
 
 session_start();
 
-require('./auth.php');
+require('./utils/Auth.php');
 $auth = new Auth();
 $isLoggedIn = $auth->isLoggedIn();
 if ($isLoggedIn) {

@@ -29,4 +29,22 @@ class Room
         $resultArray = $db->queryArrayByBindingParams($query, $keyValuePairs);
         return $resultArray;
     }
+
+    static function updateRoomById(int $id, array $setKeyValuePairs)
+    {
+        require_once('./db/DBConnection.php');
+
+        $db = new DBConnection();
+        $result = $db->updateObjectByAttribute('room_id', $id, $setKeyValuePairs, 'Room');
+        return $result;
+    }
+
+    static function deleteRoomById(int $id)
+    {
+        require_once('./db/DBConnection.php');
+
+        $db = new DBConnection();
+        $result = $db->deleteObjectByAttribute('room_id', $id, 'Room');
+        return $result;
+    }
 }

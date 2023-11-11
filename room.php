@@ -2,12 +2,20 @@
 
 session_start();
 
-require('./auth.php');
+require('./utils/Auth.php');
 $auth = new Auth();
 $isLoggedIn = $auth->isLoggedIn();
 
-if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
-    $id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT);
+if ($_POST && $isLoggedIn) {
+    require('./processPost.php');
+
+    $result = handlePostFromRoomView();
+
+    $_SESSION['message'] = $result ? 'Success!' : 'Failure.';
+
+    header("Location: {$_SERVER['REQUEST_URI']}");
+    exit;
+} elseif ($_GET && isset($_GET['id']) && $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT)) {
 
     require('./models/Room.php');
 
@@ -18,8 +26,11 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
         $stat = Room::queryRoomStatById($id);
 
         require('./models/Review.php');
-        // code for orderBy goes here
+
         $orderBy = [];
+        if (!empty($_GET['orderBy'])) {
+            $orderBy = ['name' => $_GET['orderBy']];
+        }
 
         $reviews = Review::queryReviewsByRoomIdWithOrderBy($id, $orderBy);
     } else {
@@ -40,7 +51,7 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Molijun Inn</title>
-    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="./main.css">
 </head>
 
 <body class="box-border bg-gray-100">
@@ -50,8 +61,9 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
                 <h1 class="text-2xl font-bold">Molijun Inn</h1>
             </a>
             <ul>
+                <!-- display according to login status -->
                 <?php if ($isLoggedIn) : ?>
-                    <li><span class="mx-2"><?= $_SESSION['user_name'] ?></span><a class="btn" href="./logout.php?location=<?= urlencode($_SERVER['REQUEST_URI']) ?>">Sign out</a></li>
+                    <li><span class="mx-4"><?= $_SESSION['user_name'] ?></span><a class="btn" href="./logout.php?location=<?= urlencode($_SERVER['REQUEST_URI']) ?>">Sign out</a></li>
                 <?php else : ?>
                     <li><a href="./login.php?location=<?= urlencode($_SERVER['REQUEST_URI']) ?>" class="btn">sign in</a></li>
                 <?php endif ?>
@@ -59,7 +71,13 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
         </nav>
     </header>
     <main>
-        <pre><?= var_dump($_POST) ?></pre>
+        <?php if (isset($_SESSION['message'])) : ?>
+            <script>
+                alert('<?= $_SESSION['message'] ?>')
+            </script>
+        <?php
+            unset($_SESSION['message']);
+        endif ?>
         <section class="flex flex-col items-center px-4 py-8">
             <div class="w-4/5 max-w-5xl grid grid-cols-5 gap-8">
                 <div class="col-span-3 rounded-md overflow-hidden"><img src="./images/room1.jpg" alt=""></div>
@@ -70,6 +88,7 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
                             <div><?= $room->room_name ?></div>
                             <div><?= $room->description ?></div>
                         </div>
+                        <!-- display only when user is an administrator -->
                         <?php if ($isLoggedIn && $_SESSION['discriminator'] === 'admin') : ?>
                             <div class="hidden room_form">
                                 <form method='post' enctype='multipart/form-data'>
@@ -79,13 +98,14 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
                                     <div>Pictures go here...</div>
                                     <input type='file' name='images[]' id='image' multiple>
                                     <input type="submit" class="btn" name="update" value="update" />
-                                    <input type="submit" class="btn" name="delete" value="delete" />
+                                    <input type="submit" class="btn" name="delete" value="delete" onclick="e => handleDelete(e,'room')" />
                                 </form>
                             </div>
                         <?php endif ?>
                     </div>
                 </div>
             </div>
+            <!-- display only when user is an administrator -->
             <?php if ($isLoggedIn && $_SESSION['discriminator'] === 'admin') : ?>
                 <div class="w-4/5 max-w-5xl flex justify-end">
                     <button type="submit" class="btn edit" onclick="toggleForm('<?= $room->room_id ?>', 'room')">Edit</button>
@@ -94,13 +114,17 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
         </section>
         <section class="flex justify-center px-4 py-8">
             <ul class="w-4/5 max-w-5xl">
-                <li class="w-4/5 max-w-5xl flex justify-end">
-                    <form method="get">
-                        <select name="" id="">
-                            <option value=""></option>
+                <li class="w-full flex justify-end">
+                    <form method="get" id="sortForm" action="./room.php">
+                        <input type="hidden" name="id" value="<?= $room->room_id ?>">
+                        <select class="px-2 py-1 rounded" name="orderBy" id="orderBy" onchange="handleChange()">
+                            <option value="">Default</option>
+                            <option value="created_at" <?= !empty($_GET['orderBy']) && $_GET['orderBy'] === 'created_at' ? 'selected' : '' ?>>Most Recent</option>
+                            <option value="star_rating" <?= !empty($_GET['orderBy']) && $_GET['orderBy'] === 'star_rating' ? 'selected' : '' ?>>Top Ratings</option>
                         </select>
                     </form>
                 </li>
+                <!-- display only when user is a customer -->
                 <?php if ($isLoggedIn && $_SESSION['discriminator'] === 'customer') : ?>
                     <li class="mb-4">
                         <div class="mb-4"><button id="create" class="btn edit">Create</button></div>
@@ -114,7 +138,7 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
                                 </div>
                                 <div class="col-span-3">
                                     <form method='post' enctype='multipart/form-data' id="form">
-                                        <input type="hidden" name="user_id" value="<?= $_SESSION['user_id'] ?>">
+                                        <input type="hidden" name="room_id" value="<?= $room->room_id ?>">
                                         <input class="mb-2 w-full border border-gray-300 rounded" type="number" min="1" max="5" placeholder="Give a star rating..." name="star_rating">
                                         <textarea class="w-full border border-gray-300 rounded" name="review_content" rows="5" placeholder="Write a comment about your stay..."></textarea>
                                         <div>Pictures go here...</div>
@@ -134,9 +158,11 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
                                 <h4 class="ml-4"><?= $review->user_name ?></h4>
                             </div>
                             <p><?= $review->get_formatted_datetime() ?></p>
+                            <!-- display only when user is a customer and review is written by this user -->
                             <?php if ($isLoggedIn && $_SESSION['discriminator'] === 'customer' && $_SESSION['user_id'] === $review->user_id) : ?>
                                 <button type="button" class="btn edit" onclick="toggleForm('<?= $review->review_id ?>', 'review')">Edit</button>
                             <?php endif ?>
+                            <!-- display only when user is an administrator and reply is empty -->
                             <?php if ($isLoggedIn && $_SESSION['discriminator'] === 'admin' && empty($review->reply_content)) : ?>
                                 <button type="button" class="btn edit" onclick="toggleForm('<?= $review->review_id ?>', 'reply')">reply</button>
                             <?php endif ?>
@@ -147,7 +173,16 @@ if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
                                 <div class="review_content"><?= $review->review_content ?></div>
                                 <div class="pictures">pictures go here...</div>
                                 <div id="reply_<?= $review->review_id ?>">
-                                    <div class="reply_info"><?= empty($review->reply_content) ? '' : $review->reply_content ?></div>
+                                    <!-- display reply if exists -->
+                                    <div class="reply_info">
+                                        <?php if (!empty($review->reply_content)) : ?>
+                                            <div class="border border-gray-400 p-2 my-2 rounded">
+                                                <p>Response from Molijun Inn:</p>
+                                                <div><?= $review->reply_content ?></div>
+                                            </div>
+                                        <?php endif ?>
+                                    </div>
+                                    <!-- enable reply if user is admin and no reply exists -->
                                     <?php if ($isLoggedIn && $_SESSION['discriminator'] === 'admin' && empty($review->reply_content)) : ?>
                                         <div class="hidden reply_form">
                                             <form method="post">

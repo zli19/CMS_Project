@@ -3,10 +3,10 @@
 require('./db/DBConnection.php');
 $db = new DBConnection();
 
-$result = $db->updateObjectByAttribute('token_no', 20, ['is_expired' => 1], 'Token');
+$result = $db->updateObjectByAttribute('review_id', 20, ['is_expired' => 1,], 'Token');
 
-// $columnName = 'token_id';
-// $value = 20;
+$columnName = 'token_id';
+$value = 20;
 
 
 // $DB_DSN = 'mysql:host=localhost;dbname=molijuninn;charset=utf8';
@@ -23,4 +23,12 @@ $result = $db->updateObjectByAttribute('token_no', 20, ['is_expired' => 1], 'Tok
 //     exit($e->getMessage());
 // }
 
-var_dump($result);
+
+// $num = "5";
+// $non_num = '5b';
+
+// $numVar = filter_var($num, FILTER_VALIDATE_INT);
+// $non_numVar = filter_var($non_num, FILTER_VALIDATE_INT);
+
+// var_dump($numVar);
+var_dump($non_numVar);

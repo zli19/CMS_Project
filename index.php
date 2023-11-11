@@ -1,5 +1,10 @@
 <?php
 
+session_start();
+
+require('./auth.php');
+$auth = new Auth();
+$isLoggedIn = $auth->isLoggedIn();
 
 
 ?>
@@ -22,7 +27,11 @@
                 <h1 class="text-2xl font-bold">Molijun Inn</h1>
             </a>
             <ul>
-                <li><a href="./login.php"><b class="px-6 py-2 border rounded">Sign in</b></a></li>
+                <?php if ($isLoggedIn) : ?>
+                    <li><span class="mx-4"><?= $_SESSION['user_name'] ?></span><a class="btn" href="./logout.php?location=<?= urlencode($_SERVER['REQUEST_URI']) ?>">Sign out</a></li>
+                <?php else : ?>
+                    <li><a href="./login.php?location=<?= urlencode($_SERVER['REQUEST_URI']) ?>" class="btn">sign in</a></li>
+                <?php endif ?>
             </ul>
         </nav>
     </header>
@@ -40,7 +49,11 @@
         </section>
         <section class="flex justify-center px-4 py-8">
             <ul class="w-4/5 max-w-5xl">
-
+                <li><a href="./room.php?id=1">Room 1</a></li>
+                <li><a href="./room.php?id=1">Room 2</a></li>
+                <li><a href="./room.php?id=1">Room 3</a></li>
+                <li><a href="./room.php?id=1">Room 4</a></li>
+                <li><a href="./room.php?id=1">Room 5</a></li>
             </ul>
         </section>
     </main>

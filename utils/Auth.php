@@ -18,7 +18,6 @@ class Auth
 
     function isLoggedIn()
     {
-
         // check session first
         if (!empty($_SESSION['user_id']) && !empty($_SESSION['user_name']) && !empty($_SESSION['discriminator'])) return true;
         // check cookies

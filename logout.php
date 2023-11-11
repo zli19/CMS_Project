@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-require('./auth.php');
+require('./utils/Auth.php');
 $auth = new Auth();
 $auth->clearCookieAndToken();
 session_destroy();
