@@ -37,7 +37,11 @@ class DBConnection
     {
         try {
             $statement = $this->db->prepare($query);
-            $statement->execute($keyValuePairs);
+            if ($keyValuePairs) {
+                $statement->execute($keyValuePairs);
+            } else {
+                $statement->execute();
+            }
             $statement->setFetchMode(PDO::FETCH_CLASS, $className);
             $objectArray = $statement->fetchAll();
             return $objectArray;

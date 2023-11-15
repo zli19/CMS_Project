@@ -15,15 +15,15 @@ if ($_POST && $isLoggedIn) {
 
     header("Location: {$_SERVER['REQUEST_URI']}");
     exit;
-} elseif ($_GET && isset($_GET['id']) && $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT)) {
+} elseif ($_GET && filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT)) {
 
     require('./models/Room.php');
-
-    $room = Room::queryRoomById($id);
+    $room_id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT);
+    $room = Room::queryRoomById($room_id);
 
     if ($room) {
         // Get the statistic of the room
-        $stat = Room::queryRoomStatById($id);
+        $stat = Room::queryRoomStatById($room_id);
 
         require('./models/Review.php');
 
@@ -32,7 +32,7 @@ if ($_POST && $isLoggedIn) {
             $orderBy = ['name' => $_GET['orderBy']];
         }
 
-        $reviews = Review::queryReviewsByRoomIdWithOrderBy($id, $orderBy);
+        $reviews = Review::queryReviewsByRoomIdWithOrderBy($room_id, $orderBy);
     } else {
         header("Location: index.php");
         exit;

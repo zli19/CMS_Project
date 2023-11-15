@@ -18,6 +18,7 @@ class Room
         return $room;
     }
 
+    // returns the number of reviews 'total' and 'avg' as the average star rating of the specified room
     static function queryRoomStatById(int $id)
     {
         require_once('./db/DBConnection.php');
@@ -28,6 +29,19 @@ class Room
         $keyValuePairs = ['room_id' => $id];
         $resultArray = $db->queryArrayByBindingParams($query, $keyValuePairs);
         return $resultArray;
+    }
+
+    static function queryRoomsOrderBy(array $orderBy)
+    {
+        require_once('./db/DBConnection.php');
+
+        $db = new DBConnection();
+        $query = 'SELECT * FROM rooms';
+        if (!empty($orderBy['name'])) {
+            $query .= " ORDER BY {$orderBy['name']} DESC";
+        }
+        $objs = $db->queryObjectsByBindingParams($query, [], 'Room');
+        return $objs;
     }
 
     function updateRoom()
