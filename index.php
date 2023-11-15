@@ -2,7 +2,7 @@
 
 session_start();
 
-require('./auth.php');
+require('./utils/Auth.php');
 $auth = new Auth();
 $isLoggedIn = $auth->isLoggedIn();
 
@@ -30,7 +30,7 @@ $isLoggedIn = $auth->isLoggedIn();
                 <?php if ($isLoggedIn) : ?>
                     <li><span class="mx-4"><?= $_SESSION['user_name'] ?></span><a class="btn" href="./logout.php?location=<?= urlencode($_SERVER['REQUEST_URI']) ?>">Sign out</a></li>
                 <?php else : ?>
-                    <li><a href="./login.php?location=<?= urlencode($_SERVER['REQUEST_URI']) ?>" class="btn">sign in</a></li>
+                    <li><a href="./login.php" class="btn">sign in</a></li>
                 <?php endif ?>
             </ul>
         </nav>

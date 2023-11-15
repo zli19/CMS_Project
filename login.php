@@ -15,36 +15,34 @@ if (
     isset($_POST['email']) &&
     isset($_POST['password'])
 ) {
-    $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
-    if (!($email = filter_var($email, FILTER_VALIDATE_EMAIL)) || !$_POST['password']) {
-        storeForm();
+    if (filter_var($_POST['email'], FILTER_VALIDATE_EMAIL) && $_POST['password']) {
+        $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+
+        $user = $auth->authenticateUser($email, $_POST['password']);
+        if ($user) {
+            $auth->setLoginSession($user);
+            $auth->setCookieAndToken($user);
+            if (!empty($_POST['location'])) {
+                header("Location: {$_POST['location']}");
+            } else {
+                header('Location: index.php');
+            }
+            exit;
+        } else {
+            $_SESSION['login_error'] = 'Your user credential is invalid.';
+            if (!empty($_POST['location'])) {
+                $redirectURL .= '?location=' . urlencode($_POST['location']);
+            }
+        }
+    } else {
         $_SESSION['login_error'] = 'Please provide a valid email address and password.';
         if (!empty($_POST['location'])) {
             $redirectURL .= '?location=' . urlencode($_POST['location']);
         }
-        header("Location: {$redirectURL}");
-        exit;
     }
-
-    $user = $auth->authenticateUser($email, $_POST['password']);
-    if ($user) {
-        $auth->setLoginState($user);
-        $auth->setCookieAndToken($user);
-        if (!empty($_POST['location'])) {
-            header("Location: {$_POST['location']}");
-        } else {
-            header('Location: index.php');
-        }
-        exit;
-    } else {
-        storeForm();
-        $_SESSION['login_error'] = 'Your user credential is invalid.';
-        if (!empty($_POST['location'])) {
-            $redirectURL .= '?location=' . urlencode($_POST['location']);
-        }
-        header("Location: {$redirectURL}");
-        exit;
-    }
+    storeForm();
+    header("Location: {$redirectURL}");
+    exit;
 }
 
 function storeForm()
@@ -74,11 +72,19 @@ function storeForm()
         </nav>
     </header>
     <main>
+        <?php if (isset($_SESSION['message'])) : ?>
+            <script>
+                alert('<?= $_SESSION['message'] ?>')
+            </script>
+        <?php
+            unset($_SESSION['message']);
+        endif ?>
         <section class="flex flex-col items-center px-4 py-8">
-            <div class="max-w-md w-72">
+            <div class="max-w-md w-80">
                 <form class="bg-white p-8 w-full rounded shadow-sm hover:shadow-md" action="login.php" method="POST">
-                    <header class="mb-4 p-8">
-                        <h2 class="text-xl font-bold">Login</h2>
+                    <header>
+                        <h2 class="text-xl font-bold text-green-700 py-4">Log in to your account</h2>
+                        <p class="font-bold py-4">Don't have an account? <a class="text-blue-700" href="signup.php">Sign Up</a></p>
                     </header>
                     <?php if (!empty($_SESSION['login_error'])) : ?>
                         <small class="text-sm text-red-500"><?= $_SESSION['login_error'] ?></small>
@@ -98,6 +104,7 @@ function storeForm()
                                                                                                                             unset($_SESSION['password']);
                                                                                                                         } ?>">
                     <button class="btn" type="submit">Submit</button>
+
                 </form>
             </div>
         </section>

@@ -37,11 +37,12 @@ class Auth
 
                     if ($user) {
                         // set $_SESSION to store logged-in state
-                        $this->setLoginState($user);
+                        $this->setLoginSession($user);
                         return true;
                     }
                 } else {
-                    $this->clearCookieAndToken();
+                    $token->markAsExpired();
+                    setcookie('user_token', '', time() - 3600);
                 }
             }
         }
@@ -49,7 +50,7 @@ class Auth
     }
 
     // set $_SESSION to store user's logged-in state
-    function setLoginState(User $user)
+    function setLoginSession(User $user)
     {
         $_SESSION['user_id'] = $user->user_id;
         $_SESSION['user_name'] = $user->user_name;
@@ -68,14 +69,16 @@ class Auth
         $token->token_no = $token_no;
         $token->expiry_date = date("Y-m-d H:i:s", $tokenExpiryTime);
 
-        Token::insert($token);
+        $token->insertToken();
     }
 
-    function clearCookieAndToken()
+    function logout()
     {
         if (!empty($_COOKIE['user_token'])) {
-            Token::markAsExpiredByTokenNo($_COOKIE['user_token']);
+            $token = Token::queryTokenByTokenNo($_COOKIE['user_token']);
+            if ($token) $token->markAsExpired();
             setcookie('user_token', '', time() - 3600);
         }
+        session_destroy();
     }
 }

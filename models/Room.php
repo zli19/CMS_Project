@@ -30,21 +30,23 @@ class Room
         return $resultArray;
     }
 
-    static function updateRoomById(int $id, array $setKeyValuePairs)
+    function updateRoom()
     {
         require_once('./db/DBConnection.php');
 
         $db = new DBConnection();
-        $result = $db->updateObjectByAttribute('room_id', $id, $setKeyValuePairs, 'Room');
+
+        $keyValuePairs = ['room_name' => $this->room_name, 'description' => $this->description];
+        $result = $db->updateObjectByAttribute('room_id', $this->room_id, $setKeyValuePairs, 'Room');
         return $result;
     }
 
-    static function deleteRoomById(int $id)
+    function deleteRoom()
     {
         require_once('./db/DBConnection.php');
 
         $db = new DBConnection();
-        $result = $db->deleteObjectByAttribute('room_id', $id, 'Room');
+        $result = $db->deleteObjectByAttribute('room_id', $this->room_id, 'Room');
         return $result;
     }
 }

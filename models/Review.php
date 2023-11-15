@@ -34,30 +34,32 @@ class Review
         return $objs;
     }
 
-    static function insertReviewByBindingParams(array $keyValuePairs)
+    function insertReview()
     {
         require_once('./db/DBConnection.php');
 
         $db = new DBConnection();
+        $keyValuePairs = ['user_id' => $this->user_id, 'room_id' => $this->room_id, 'star_rating' => $this->star_rating, 'review_content' => $this->review_content];
         $result = $db->insertObject($keyValuePairs, 'Review');
         return $result;
     }
 
-    static function deleteReviewById(int $id)
+    function deleteReview()
     {
         require_once('./db/DBConnection.php');
 
         $db = new DBConnection();
-        $result = $db->deleteObjectByAttribute('review_id', $id, 'Review');
+        $result = $db->deleteObjectByAttribute('review_id', $this->review_id, 'Review');
         return $result;
     }
 
-    static function updateReviewById(int $id, array $setKeyValuePairs)
+    function updateReview()
     {
         require_once('./db/DBConnection.php');
 
         $db = new DBConnection();
-        $result = $db->updateObjectByAttribute('review_id', $id, $setKeyValuePairs, 'Review');
+        $keyValuePairs = ['star_rating' => $this->star_rating, 'review_content' => $this->review_content];
+        $result = $db->updateObjectByAttribute('review_id', $this->review_id, $keyValuePairs, 'Review');
         return $result;
     }
 }
