@@ -56,6 +56,7 @@ function handlePostFromRoomView()
 
         if (
             !empty($_POST['update']) &&
+            $review->room_id &&
             $review->review_id &&
             $review->star_rating &&
             $review->review_content
@@ -67,5 +68,20 @@ function handlePostFromRoomView()
         }
     }
 
+    return $result;
+}
+
+function handlePostFromIndex()
+{
+    $result = false;
+
+    require('./models/Room.php');
+    $room = new Room();
+    $room->room_name = filter_input(INPUT_POST, 'room_name', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $room->description = filter_input(INPUT_POST, 'description', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+
+    if (!empty($_POST['insert']) && $room->room_name && $room->description) {
+        $result = $room->insertRoom();
+    }
     return $result;
 }

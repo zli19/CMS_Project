@@ -1,3 +1,15 @@
+// Replace number to stars for star rating
+// let ratings = document.getElementsByClassName("star_rating");
+// let star = document.createElement("img");
+// star.src = "./images/star_24.png";
+// for (let rating of ratings) {
+//   let num = Number(rating.innerHTML);
+//   rating.innerHTML = star;
+//   // for (let i = 0; i < num; i++) {
+//   //   rating.appendChild(star);
+//   // }
+// }
+
 // Add functionality to the create button to toggle the createForm
 let createBtn = document.getElementById("create");
 let createForm = document.getElementById("createForm");
@@ -77,8 +89,8 @@ const toggleForm = (id, type) => {
   }
 };
 
-const handleChange = () => {
-  document.getElementById("sortForm").submit();
+const handleChange = (type) => {
+  document.getElementById(`${type}Form`).submit();
 };
 
 const handleDelete = (event, name) => {

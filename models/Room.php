@@ -44,13 +44,24 @@ class Room
         return $objs;
     }
 
+    function insertRoom()
+    {
+        require_once('./db/DBConnection.php');
+
+        $db = new DBConnection();
+
+        $KeyValuePairs = ['room_name' => $this->room_name, 'description' => $this->description];
+        $result = $db->insertObject($KeyValuePairs, 'Room');
+        return $result;
+    }
+
     function updateRoom()
     {
         require_once('./db/DBConnection.php');
 
         $db = new DBConnection();
 
-        $keyValuePairs = ['room_name' => $this->room_name, 'description' => $this->description];
+        $setKeyValuePairs = ['room_name' => $this->room_name, 'description' => $this->description];
         $result = $db->updateObjectByAttribute('room_id', $this->room_id, $setKeyValuePairs, 'Room');
         return $result;
     }

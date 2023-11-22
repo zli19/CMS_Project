@@ -1,12 +1,15 @@
 <?php
+require('./models/Review.php');
+require_once('./db/DBConnection.php');
 
-require('./db/DBConnection.php');
 $db = new DBConnection();
+$query = 'SELECT r.review_id, r.user_id, u.user_name, r.room_id, r.review_content, r.star_rating, r.created_at, re.reply_id, re.reply_content FROM reviews r JOIN users u ON r.user_id = u.user_id LEFT JOIN replies re ON r.review_id = re.review_id WHERE r.room_id = :room_id';
+$keyValuePairs = ['room_id' => 2];
 
-$result = $db->updateObjectByAttribute('review_id', 20, ['is_expired' => 1,], 'Token');
+$query .= " ORDER BY :order_by DESC";
+$keyValuePairs['order_by'] = 'star_rating';
 
-$columnName = 'token_id';
-$value = 20;
+$objs = $db->queryObjectsByBindingParams($query, $keyValuePairs, 'Review');
 
 
 // $DB_DSN = 'mysql:host=localhost;dbname=molijuninn;charset=utf8';
@@ -31,4 +34,6 @@ $value = 20;
 // $non_numVar = filter_var($non_num, FILTER_VALIDATE_INT);
 
 // var_dump($numVar);
-var_dump($non_numVar);
+print_r(array_map(function ($item) {
+    return $item->star_rating;
+}, $objs));
