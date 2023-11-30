@@ -15,17 +15,11 @@ if (
     isset($_POST['password'])
 ) {
     if (filter_var($_POST['email'], FILTER_VALIDATE_EMAIL) && $_POST['username'] &&  $_POST['password']) {
-        $username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-        $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
-        $hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
-        $user = new User();
-        $user->user_name = $username;
-        $user->email = $email;
-        $user->password = $hash;
-        $user->discriminator = 'customer';
+        require('./processPost.php');
 
-        $result = $user->insertUser();
+        $result = handlePostFromAdmin();
+
         if ($result) {
             $_SESSION['message'] = 'Success! You can login with you new credential.';
             header('Location: login.php');
@@ -103,9 +97,8 @@ function storeForm()
                                                                                                                             echo ($_SESSION['password2']);
                                                                                                                             unset($_SESSION['password2']);
                                                                                                                         } ?>">
-
-                    <button class="btn" type="submit">Submit</button>
-
+                    <input type="hidden" name="insert" value="insert">
+                    <button type="submit" class="btn">submit</button>
                 </form>
             </div>
         </section>

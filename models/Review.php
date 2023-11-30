@@ -3,7 +3,7 @@
 class Review
 {
     public int $review_id;
-    public int $user_id;
+    public ?int $user_id;
     public ?string $user_name;
     public int $room_id;
     public string $review_content;
@@ -25,7 +25,7 @@ class Review
         require_once('./db/DBConnection.php');
 
         $db = new DBConnection();
-        $query = 'SELECT r.review_id, r.user_id, u.user_name, r.room_id, r.review_content, r.star_rating, r.created_at, re.reply_id, re.reply_content FROM reviews r JOIN users u ON r.user_id = u.user_id LEFT JOIN replies re ON r.review_id = re.review_id WHERE r.room_id = :room_id';
+        $query = 'SELECT r.review_id, r.user_id, u.user_name, r.room_id, r.review_content, r.star_rating, r.created_at, re.reply_id, re.reply_content FROM reviews r LEFT JOIN users u ON r.user_id = u.user_id LEFT JOIN replies re ON r.review_id = re.review_id WHERE r.room_id = :room_id';
         $keyValuePairs = ['room_id' => $id];
         if (!empty($options['rating'])) {
             $query .= " AND r.star_rating = :star_rating";

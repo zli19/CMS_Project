@@ -114,6 +114,7 @@ if ($_POST && $isLoggedIn) {
                                     <input type='file' name='images[]' id='image' multiple>
                                     <input type="submit" class="btn" name="update" value="update" />
                                     <input type="submit" class="btn" name="delete" value="delete" onclick="e => handleDelete(e,'room')" />
+                                    <input type="hidden" name="type" value="room">
                                 </form>
                             </div>
                         <?php endif ?>
@@ -123,7 +124,7 @@ if ($_POST && $isLoggedIn) {
             <!-- display only when user is an administrator -->
             <?php if ($isLoggedIn && $_SESSION['discriminator'] === 'admin') : ?>
                 <div class="w-4/5 max-w-5xl flex justify-end">
-                    <button type="submit" class="btn edit" onclick="toggleForm('<?= $room->room_id ?>', 'room')">Edit</button>
+                    <button type="submit" class="btn edit w-20" onclick="toggleForm('<?= $room->room_id ?>', 'room')">Edit</button>
                 </div>
             <?php endif ?>
         </section>
@@ -156,51 +157,54 @@ if ($_POST && $isLoggedIn) {
                     </div>
                 </li>
                 <!-- display only when user is a customer -->
-                <?php if ($isLoggedIn && $_SESSION['discriminator'] === 'customer') : ?>
-                    <li class="mb-4">
+
+                <li class="mb-4">
+                    <?php if ($isLoggedIn && $_SESSION['discriminator'] === 'customer') : ?>
                         <div class="mb-4"><button id="create" class="btn edit">Create</button></div>
-                        <div id="createForm" class="hidden">
-                            <div class="grid grid-cols-4">
-                                <div class="col-span-1">
-                                    <div class="flex justify-start items-end">
-                                        <img src="./images/userIcons/default_icon_48.png" alt="">
-                                        <h4 class="ml-4"><?= $_SESSION['user_name'] ?></h4>
-                                    </div>
-                                </div>
-                                <div class="col-span-3">
-                                    <form method='post' enctype='multipart/form-data' id="form">
-                                        <select name="room_id" id="room_id" class="mb-2 px-2 py-1 rounded bg-white border border-gray-300">
-                                            <option value="">choose your targeted room</option>
-                                            <?php foreach ($rooms as $r) : ?>
-                                                <option value="<?= $r->room_id ?>" <?= $r->room_id == $room_id ? 'selected' : '' ?>><?= $r->room_name ?></option>
-                                            <?php endforeach ?>
-                                        </select>
-                                        <input class="mb-2 w-full border border-gray-300 rounded" type="number" min="1" max="5" placeholder="Give a star rating..." name="star_rating">
-                                        <textarea class="w-full border border-gray-300 rounded" name="review_content" rows="5" placeholder="Write a comment about your stay..."></textarea>
-                                        <div>Pictures go here...</div>
-                                        <input type='file' name='images[]' id='image' multiple>
-                                        <input type="submit" class="btn" name="insert" value="submit" />
-                                    </form>
+                    <?php endif ?>
+                    <div id="createForm" class="hidden">
+                        <div class="grid grid-cols-4">
+                            <div class="col-span-1">
+                                <div class="flex justify-start items-end">
+                                    <img src="./images/userIcons/default_icon_48.png" alt="">
+                                    <h4 class="ml-4"><?= $_SESSION['user_name'] ?></h4>
                                 </div>
                             </div>
+                            <div class="col-span-3">
+                                <form method='post' enctype='multipart/form-data' id="form">
+                                    <select name="room_id" id="room_id" class="mb-2 px-2 py-1 rounded bg-white border border-gray-300">
+                                        <option value="">choose your targeted room</option>
+                                        <?php foreach ($rooms as $r) : ?>
+                                            <option value="<?= $r->room_id ?>" <?= $r->room_id == $room_id ? 'selected' : '' ?>><?= $r->room_name ?></option>
+                                        <?php endforeach ?>
+                                    </select>
+                                    <input class="mb-2 w-full border border-gray-300 rounded" type="number" min="1" max="5" placeholder="Give a star rating..." name="star_rating">
+                                    <textarea class="w-full border border-gray-300 rounded" name="review_content" rows="5" placeholder="Write a comment about your stay..."></textarea>
+                                    <div>Pictures go here...</div>
+                                    <input type='file' name='images[]' id='image' multiple>
+                                    <input type="submit" class="btn" name="insert" value="submit" />
+                                    <input type="hidden" name="type" value="review">
+                                </form>
+                            </div>
                         </div>
-                    </li>
-                <?php endif ?>
+                    </div>
+                </li>
+
                 <?php foreach ($reviews as $review) : ?>
                     <li class="grid grid-cols-4 mb-4 bg-white rounded">
                         <div class="col-span-1">
                             <div class="flex justify-start items-end">
                                 <img src="./images/userIcons/default_icon_48.png" alt="">
-                                <h4 class="ml-4"><?= $review->user_name ?></h4>
+                                <h4 class="ml-4"><?= !empty($review->user_name) ? $review->user_name : 'deregistered user' ?></h4>
                             </div>
                             <p><?= $review->get_formatted_datetime() ?></p>
                             <!-- display only when user is a customer and review is written by this user -->
-                            <?php if ($isLoggedIn && $_SESSION['discriminator'] === 'customer' && $_SESSION['user_id'] === $review->user_id) : ?>
-                                <button type="button" class="btn edit" onclick="toggleForm('<?= $review->review_id ?>', 'review')">Edit</button>
+                            <?php if ($isLoggedIn && (($_SESSION['discriminator'] === 'customer' && $_SESSION['user_id'] === $review->user_id) || ($_SESSION['discriminator'] === 'admin'))) : ?>
+                                <button type="button" class="btn edit w-20" onclick="toggleForm('<?= $review->review_id ?>', 'review')">Edit</button>
                             <?php endif ?>
                             <!-- display only when user is an administrator and reply is empty -->
                             <?php if ($isLoggedIn && $_SESSION['discriminator'] === 'admin' && empty($review->reply_content)) : ?>
-                                <button type="button" class="btn edit" onclick="toggleForm('<?= $review->review_id ?>', 'reply')">reply</button>
+                                <button type="button" class="btn edit w-20" onclick="toggleForm('<?= $review->review_id ?>', 'reply')">reply</button>
                             <?php endif ?>
                         </div>
                         <div class="col-span-3" id="review_<?= $review->review_id ?>">
@@ -229,6 +233,7 @@ if ($_POST && $isLoggedIn) {
                                                 <input type="hidden" name="review_id" value="<?= $review->review_id ?>">
                                                 <textarea class="w-full border border-gray-300 rounded" name="reply_content" rows="3"></textarea>
                                                 <input type="submit" class="btn" name="insert" value="submit" />
+                                                <input type="hidden" name="type" value="reply">
                                             </form>
                                         </div>
                                     <?php endif ?>

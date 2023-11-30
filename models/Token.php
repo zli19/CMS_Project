@@ -3,7 +3,7 @@
 class Token
 {
     public int $token_id;
-    public int $user_id;
+    public ?int $user_id;
     public string $token_no;
     public int $is_expired;
     public string $expiry_date;
