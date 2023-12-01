@@ -41,14 +41,27 @@ $rooms = Room::queryRoomsOrderBy($orderBy);
 <body class="box-border bg-gray-100">
     <header class="flex justify-center py-4">
         <nav class="flex justify-between w-4/5 max-w-5xl">
-            <a href="./index.php" style="text-decoration: none; color: black;">
-                <h1 class="text-2xl font-bold">Molijun Inn</h1>
-            </a>
+            <div>
+                <ul>
+                    <li class="inline-block mr-4">
+                        <a href=" ./index.php" style="text-decoration: none; color: black;">
+                            <h1 class="text-2xl font-bold">Molijun Inn</h1>
+                        </a>
+                    </li>
+                    <li class="inline-block font-mono  mr-4 hover:text-green-800 hover:underline">
+                        <a href="./reviews.php">Reviews</a>
+                    </li>
+                </ul>
+            </div>
             <ul>
-                <?php if ($isLoggedIn) : ?>
-                    <li><span class="mx-4"><?= $_SESSION['user_name'] ?></span><a class="btn" href="./logout.php?location=<?= urlencode($_SERVER['REQUEST_URI']) ?>">Sign out</a></li>
+                <?php if ($isLoggedIn) :
+                    if ($_SESSION['discriminator'] === 'admin') : ?>
+                        <li class="inline-block btn-secondary text-sm"><a href="./admin.php">Edit Users</a></li>
+                    <?php endif ?>
+                    <li class="inline-block font-mono text-sm ml-6"><span><?= $_SESSION['user_name'] ?></span></li>
+                    <li class="inline-block btn text-sm"><a href="./logout.php?location=<?= urlencode($_SERVER['REQUEST_URI']) ?>">Sign out</a></li>
                 <?php else : ?>
-                    <li><a href="./login.php" class="btn">sign in</a></li>
+                    <li class="inline-block text-sm"><a href="./login.php" class="btn">sign in</a></li>
                 <?php endif ?>
             </ul>
         </nav>
@@ -91,7 +104,7 @@ $rooms = Room::queryRoomsOrderBy($orderBy);
                 <?php endif ?>
                 <?php foreach ($rooms as $room) :
                     $stat = Room::queryRoomStatById($room->room_id) ?>
-                    <a href="./room.php?id=<?= $room->room_id ?>">
+                    <a href="./rooms.php?id=<?= $room->room_id ?>">
                         <li class="px-4 py-4 grid grid-cols-4 mb-4 bg-white rounded shadow hover:shadow-md">
                             <div class="col-span-1 font-bold"><?= $room->room_name ?></div>
                             <div class="col-span-1">

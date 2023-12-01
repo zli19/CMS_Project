@@ -1,7 +1,24 @@
 <?php
-// require('./models/Review.php');
-// require_once('./db/DBConnection.php');
 
+$query = 'SELECT r.review_id, r.user_id, u.user_name, r.room_id, r.review_content, r.star_rating, r.created_at, re.reply_id, re.reply_content FROM reviews r LEFT JOIN users u ON r.user_id = u.user_id LEFT JOIN replies re ON r.review_id = re.review_id';
+
+$keyValuePairs = [];
+
+if ($idOrRating) {
+    $query .= ' WHERE ';
+    $i = 0;
+    foreach ($idOrRating as $key => $value) {
+        $query .= "{$key} = {$value}";
+        if ($i > 0 && $i < count($idOrRating) - 1) {
+            $query .= ' AND ';
+        }
+        $i++;
+    }
+}
+
+if ($orderBy) {
+    $query .= " ORDER BY {$orderBy[0]} DESC";
+}
 // $db = new DBConnection();
 // $query = 'SELECT r.review_id, r.user_id, u.user_name, r.room_id, r.review_content, r.star_rating, r.created_at, re.reply_id, re.reply_content FROM reviews r JOIN users u ON r.user_id = u.user_id LEFT JOIN replies re ON r.review_id = re.review_id WHERE r.room_id = :room_id';
 // $keyValuePairs = ['room_id' => 2];

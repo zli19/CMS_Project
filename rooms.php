@@ -28,15 +28,17 @@ if ($_POST && $isLoggedIn) {
         $stat = Room::queryRoomStatById($room_id);
 
         require('./models/Review.php');
+        $idOrRating = ['room_id' => $room_id];
+        if (filter_input(INPUT_GET, 'rating', FILTER_VALIDATE_INT)) {
+            $idOrRating['star_rating'] = filter_input(INPUT_GET, 'rating', FILTER_SANITIZE_NUMBER_INT);
+        }
 
-        $options = ['orderBy' => 'created_at'];
+        $orderBy = ['created_at'];
         if (!empty($_GET['orderBy'])) {
-            $options['orderBy'] = filter_input(INPUT_GET, 'orderBy', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+            $orderBy = array(filter_input(INPUT_GET, 'orderBy', FILTER_SANITIZE_FULL_SPECIAL_CHARS));
         }
-        if (!empty($_GET['rating']) && filter_input(INPUT_GET, 'rating', FILTER_VALIDATE_INT)) {
-            $options['rating'] = filter_input(INPUT_GET, 'rating', FILTER_SANITIZE_NUMBER_INT);
-        }
-        $reviews = Review::queryReviewsByRoomIdWithRatingAndOrderBy($room_id, $options);
+
+        $reviews = Review::queryReviewsWithRoomOrRatingWithOrderBy('', $idOrRating, $orderBy);
     } else {
         header("Location: index.php");
         exit;
@@ -56,21 +58,32 @@ if ($_POST && $isLoggedIn) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Molijun Inn</title>
     <link rel="stylesheet" href="./main.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 
 <body class="box-border bg-gray-100">
     <header class="flex justify-center py-4">
         <nav class="flex justify-between w-4/5 max-w-5xl">
-            <a href="./index.php" style="text-decoration: none; color: black;">
-                <h1 class="text-2xl font-bold">Molijun Inn</h1>
-            </a>
+            <div>
+                <ul>
+                    <li class="inline-block mr-4">
+                        <a href=" ./index.php" style="text-decoration: none; color: black;">
+                            <h1 class="text-2xl font-bold">Molijun Inn</h1>
+                        </a>
+                    </li>
+                    <li class="inline-block font-mono  mr-4 hover:text-green-800 hover:underline">
+                        <a href="./reviews.php">Reviews</a>
+                    </li>
+                </ul>
+            </div>
             <ul>
-                <!-- display according to login status -->
-                <?php if ($isLoggedIn) : ?>
-                    <li><span class="mx-4"><?= $_SESSION['user_name'] ?></span><a class="btn" href="./logout.php?location=<?= urlencode($_SERVER['REQUEST_URI']) ?>">Sign out</a></li>
+                <?php if ($isLoggedIn) :
+                    if ($_SESSION['discriminator'] === 'admin') : ?>
+                        <li class="inline-block btn-secondary text-sm"><a href="./admin.php">Edit Users</a></li>
+                    <?php endif ?>
+                    <li class="inline-block font-mono text-sm ml-6"><span><?= $_SESSION['user_name'] ?></span></li>
+                    <li class="inline-block btn text-sm"><a href="./logout.php?location=<?= urlencode($_SERVER['REQUEST_URI']) ?>">Sign out</a></li>
                 <?php else : ?>
-                    <li><a href="./login.php?location=<?= urlencode($_SERVER['REQUEST_URI']) ?>" class="btn">sign in</a></li>
+                    <li class="inline-block text-sm"><a href="./login.php" class="btn">sign in</a></li>
                 <?php endif ?>
             </ul>
         </nav>
@@ -132,10 +145,10 @@ if ($_POST && $isLoggedIn) {
             <ul class="w-4/5 max-w-5xl">
                 <li class="w-full flex justify-end">
                     <div class="px-2">
-                        <form class="flex justify-between mb-2" method="get" id="ratingForm" action="./room.php">
+                        <form class="flex justify-between mb-2" method="get" id="ratingForm" action="./rooms.php">
                             <input type="hidden" name="id" value="<?= $room->room_id ?>">
                             <label class="px-2" for="rating">Rating: </label>
-                            <select class="px-2 py-1 rounded bg-white" name="rating" id="rating" onchange="handleChange('rating')">
+                            <select class="px-2 py-1 rounded bg-white" name="rating" id="rating">
                                 <option value="">All</option>
                                 <option value="5" <?= !empty($_GET['rating']) && $_GET['rating'] === '5' ? 'selected' : '' ?>>5 star</option>
                                 <option value="4" <?= !empty($_GET['rating']) && $_GET['rating'] === '4' ? 'selected' : '' ?>>4 star</option>
@@ -146,10 +159,10 @@ if ($_POST && $isLoggedIn) {
                         </form>
                     </div>
                     <div class="px-2">
-                        <form class="flex justify-between" method="get" id="sortForm" action="./room.php">
+                        <form class="flex justify-between" method="get" id="sortForm" action="./rooms.php">
                             <input type="hidden" name="id" value="<?= $room->room_id ?>">
                             <label class="px-2" for="orderBy">Order By: </label>
-                            <select class="px-2 py-1 rounded bg-white" name="orderBy" id="orderBy" onchange="handleChange('sort')">
+                            <select class="px-2 py-1 rounded bg-white" name="orderBy" id="orderBy">
                                 <option value="created_at" <?= !empty($_GET['orderBy']) && $_GET['orderBy'] === 'created_at' ? 'selected' : '' ?>>Most Recent</option>
                                 <option value="star_rating" <?= !empty($_GET['orderBy']) && $_GET['orderBy'] === 'star_rating' ? 'selected' : '' ?>>Top Ratings</option>
                             </select>
@@ -209,11 +222,13 @@ if ($_POST && $isLoggedIn) {
                         </div>
                         <div class="col-span-3" id="review_<?= $review->review_id ?>">
                             <div class="review_info">
-                                <div class="star_rating">
+                                <div>
                                     <?php for ($i = 0; $i < $review->star_rating; $i++) : ?>
                                         <img class="inline-block py-2" src="./images/star_16.png" alt="star">
                                     <?php endfor ?>
                                 </div>
+                                <div class="hidden room_id"><?= $review->room_id ?></div>
+                                <div class="hidden star_rating"><?= $review->star_rating ?></div>
                                 <div class="review_content"><?= $review->review_content ?></div>
                                 <div class="pictures">pictures go here...</div>
                                 <div id="reply_<?= $review->review_id ?>">

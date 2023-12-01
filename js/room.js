@@ -57,10 +57,13 @@ const toggleForm = (id, type) => {
     // Clone the form skeleton from the existing createForm.
     const form = document.getElementById("form");
     let formClone = form.cloneNode(true);
+    formClone.removeAttribute("id");
     // Copy the review information into the form.
     let children = formClone.children;
+    let room_id = info.querySelector(".room_id").innerHTML;
     let star_rating = info.querySelector(".star_rating").innerHTML;
     let review_content = info.querySelector(".review_content").innerHTML;
+    children[0].value = room_id;
     children[1].value = star_rating;
     children[2].value = review_content;
     children[5].name = "update";
@@ -88,10 +91,14 @@ const toggleForm = (id, type) => {
     // type === "reply"
   }
 };
-
-const handleChange = (type) => {
-  document.getElementById(`${type}Form`).submit();
+const handleChange = (e) => {
+  e.target.parentNode.submit();
 };
+
+let ratingSelect = document.getElementById("rating");
+let orderBySelect = document.getElementById("orderBy");
+ratingSelect.addEventListener("change", handleChange);
+orderBySelect.addEventListener("change", handleChange);
 
 const handleDelete = (event, name) => {
   if (name === "review")

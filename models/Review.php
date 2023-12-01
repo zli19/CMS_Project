@@ -6,6 +6,7 @@ class Review
     public ?int $user_id;
     public ?string $user_name;
     public int $room_id;
+    public ?string $room_name;
     public string $review_content;
     public int $star_rating;
     public string $created_at;
@@ -20,20 +21,41 @@ class Review
         return $date->format('d/M/Y, h:i A');
     }
 
-    static function queryReviewsByRoomIdWithRatingAndOrderBy(int $id, array $options)
+    static function queryReviewsWithRoomOrRatingWithOrderBy(?string $search, array $idOrRating, array $orderBy)
     {
         require_once('./db/DBConnection.php');
 
         $db = new DBConnection();
-        $query = 'SELECT r.review_id, r.user_id, u.user_name, r.room_id, r.review_content, r.star_rating, r.created_at, re.reply_id, re.reply_content FROM reviews r LEFT JOIN users u ON r.user_id = u.user_id LEFT JOIN replies re ON r.review_id = re.review_id WHERE r.room_id = :room_id';
-        $keyValuePairs = ['room_id' => $id];
-        if (!empty($options['rating'])) {
-            $query .= " AND r.star_rating = :star_rating";
-            $keyValuePairs['star_rating'] = $options['rating'];
+        $query = 'SELECT r.review_id, r.user_id, u.user_name, r.room_id, rooms.room_name, r.review_content, r.star_rating, r.created_at, re.reply_id, re.reply_content FROM reviews r LEFT JOIN users u ON r.user_id = u.user_id LEFT JOIN replies re ON r.review_id = re.review_id JOIN rooms ON r.room_id = rooms.room_id';
+
+        $keyValuePairs = $idOrRating;
+
+        if ($idOrRating) {
+            $query .= ' WHERE ';
+            $i = 0;
+            foreach ($idOrRating as $key => $value) {
+                $query .= "r.{$key} = :{$key}";
+                if (count($idOrRating) > 1 && $i < count($idOrRating) - 1) {
+                    $query .= ' AND ';
+                }
+                $i++;
+            }
         }
-        if (!empty($options['orderBy'])) {
-            $query .= " ORDER BY {$options['orderBy']} DESC";
+
+        if ($search) {
+            if ($idOrRating) {
+                $query .= ' AND ';
+            } else {
+                $query .= ' WHERE ';
+            }
+            $query .= '(LOWER(r.review_content) LIKE LOWER(:content) OR LOWER(u.user_name) LIKE LOWER(:content) OR LOWER(rooms.room_name) LIKE LOWER(:content))';
+            $keyValuePairs['content'] = '%' . $search . '%';
         }
+
+        if ($orderBy) {
+            $query .= " ORDER BY {$orderBy[0]} DESC";
+        }
+
         $objs = $db->queryObjectsByBindingParams($query, $keyValuePairs, 'Review');
         return $objs;
     }
