@@ -1,4 +1,5 @@
 <?php
+require_once('./db/DBConnection.php');
 
 class Token
 {
@@ -10,8 +11,6 @@ class Token
 
     function insertToken()
     {
-        require_once('./db/DBConnection.php');
-
         $db = new DBConnection();
 
         $result = $db->insertObject(['user_id' => $this->user_id, 'token_no' => $this->token_no, 'expiry_date' => $this->expiry_date], 'Token');
@@ -20,8 +19,6 @@ class Token
 
     function markAsExpired()
     {
-        require_once('./db/DBConnection.php');
-
         $db = new DBConnection();
         $result = $db->updateObjectByAttribute('token_id', $this->token_id, ['is_expired' => 1], 'Token');
         return $result;
@@ -29,11 +26,9 @@ class Token
 
     static function queryTokenByTokenNo(string $token)
     {
-        require_once('./db/DBConnection.php');
-
         $db = new DBConnection();
 
-        $token = $db->queryObjectByAttribute('token_no', $token, 'Token');
+        $token = $db->queryObjectsByAttribute('token_no', $token, 'Token')[0];
         return $token;
     }
 }

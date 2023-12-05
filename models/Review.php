@@ -1,5 +1,5 @@
 <?php
-
+require_once('./db/DBConnection.php');
 class Review
 {
     public int $review_id;
@@ -23,8 +23,6 @@ class Review
 
     static function queryReviewsWithRoomOrRatingWithOrderBy(?string $search, array $idOrRating, array $orderBy)
     {
-        require_once('./db/DBConnection.php');
-
         $db = new DBConnection();
         $query = 'SELECT r.review_id, r.user_id, u.user_name, r.room_id, rooms.room_name, r.review_content, r.star_rating, r.created_at, re.reply_id, re.reply_content FROM reviews r LEFT JOIN users u ON r.user_id = u.user_id LEFT JOIN replies re ON r.review_id = re.review_id JOIN rooms ON r.room_id = rooms.room_id';
 
@@ -62,8 +60,6 @@ class Review
 
     function insertReview()
     {
-        require_once('./db/DBConnection.php');
-
         $db = new DBConnection();
         $keyValuePairs = ['user_id' => $this->user_id, 'room_id' => $this->room_id, 'star_rating' => $this->star_rating, 'review_content' => $this->review_content];
         $result = $db->insertObject($keyValuePairs, 'Review');
@@ -72,17 +68,35 @@ class Review
 
     function deleteReview()
     {
-        require_once('./db/DBConnection.php');
-
         $db = new DBConnection();
+
         $result = $db->deleteObjectByAttribute('review_id', $this->review_id, 'Review');
         return $result;
     }
 
+    function removeReviewAndItsImages()
+    {
+        require_once('./models/Image.php');
+        $images = Image::getImagesByAttribute('review_id', $this->review_id);
+        // Since images table is set to 'ON DELETE CASCADE', there's no need to delete images record individually.
+        // but still need to remove image files.
+        $result = $this->deleteReview();
+        if ($result && !empty($images)) {
+            $return = true;
+            foreach ($images as $image) {
+                $r = unlink(realpath($image->path));
+                if (!$r && $return) {
+                    $return = false;
+                }
+            }
+            return $return;
+        } else {
+            return $result;
+        }
+    }
+
     function updateReview()
     {
-        require_once('./db/DBConnection.php');
-
         $db = new DBConnection();
         $keyValuePairs = ['room_id' => $this->room_id, 'star_rating' => $this->star_rating, 'review_content' => $this->review_content];
         $result = $db->updateObjectByAttribute('review_id', $this->review_id, $keyValuePairs, 'Review');

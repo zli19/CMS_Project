@@ -29,7 +29,7 @@ class User
     {
         $db = new DBConnection();
 
-        $user = $db->queryObjectByAttribute('email', $email, 'User');
+        $user = $db->queryObjectsByAttribute('email', $email, 'User')[0];
         return $user;
     }
 
@@ -37,7 +37,7 @@ class User
     {
         $db = new DBConnection();
 
-        $user = $db->queryObjectByAttribute('user_id', $id, 'User');
+        $user = $db->queryObjectsByAttribute('user_id', $id, 'User')[0];
         return $user;
     }
 
@@ -60,8 +60,31 @@ class User
     function deleteUser()
     {
         $db = new DBConnection();
+
         $result = $db->deleteObjectByAttribute('user_id', $this->user_id, 'User');
         return $result;
+    }
+
+    function removeUserAndItsImages()
+    {
+        require_once('./models/Image.php');
+        $images = Image::getImagesByAttribute('user_id', $this->user_id);
+        $result = $this->deleteUser();
+        // Since images table is set to 'ON DELETE CASCADE', there's no need to delete images record individually.
+        // but still need to remove image files.
+        $result = $this->deleteUser();
+        if ($result && !empty($images)) {
+            $return = true;
+            foreach ($images as $image) {
+                $r = unlink(realpath($image->path));
+                if (!$r && $return) {
+                    $return = false;
+                }
+            }
+            return $return;
+        } else {
+            return $result;
+        }
     }
 
     function updateUser()

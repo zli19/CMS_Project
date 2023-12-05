@@ -24,6 +24,7 @@ if (!empty($_GET['orderBy'])) {
     $orderBy = ['name' => $_GET['orderBy']];
 }
 $rooms = Room::queryRoomsOrderBy($orderBy);
+require('./models/Image.php');
 
 ?>
 
@@ -96,17 +97,26 @@ $rooms = Room::queryRoomsOrderBy($orderBy);
                                 <input class="mb-2 w-full border border-gray-300 rounded" type="text" placeholder="Provide a name for the room..." name="room_name">
                                 <textarea class="w-full border border-gray-300 rounded" name="description" rows="5" placeholder="Write a description for the room..."></textarea>
                                 <div>Pictures go here...</div>
-                                <input type='file' name='images[]' id='image' multiple>
+                                <input type='file' name='image[]' id='image' multiple>
                                 <input type="submit" class="btn" name="insert" value="submit" />
                             </form>
                         </div>
                     </li>
                 <?php endif ?>
                 <?php foreach ($rooms as $room) :
-                    $stat = Room::queryRoomStatById($room->room_id) ?>
+                    $stat = Room::queryRoomStatById($room->room_id);
+                    $images = Image::getImagesByAttribute('room_id', $room->room_id, 100);
+                    if (!empty($images)) {
+                        $image = $images[0];
+                    } ?>
                     <a href="./rooms.php?id=<?= $room->room_id ?>">
                         <li class="px-4 py-4 grid grid-cols-4 mb-4 bg-white rounded shadow hover:shadow-md">
-                            <div class="col-span-1 font-bold"><?= $room->room_name ?></div>
+                            <div class="col-span-1 font-bold">
+                                <?php if (!empty($images)) : ?>
+                                    <img src="<?= $images[0]->path ?>" alt="">
+                                <?php endif ?>
+                                <div><?= $room->room_name ?></div>
+                            </div>
                             <div class="col-span-1">
                                 <div id="avg">
                                     <?php if ($stat && $stat['total'] > 0) : ?>

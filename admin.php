@@ -134,7 +134,7 @@ function storeForm()
                                                                                                                                                                     unset($_SESSION['password2']);
                                                                                                                                                                 } ?>">
                                 </td>
-                                <td class="col-span-2"><button type="submit" class="btn w-full border border-green-800 rounded">submit"</button></td>
+                                <td class="col-span-2"><button type="submit" class="btn w-full border border-green-800 rounded">submit</button></td>
                             </tr>
                             <input type="hidden" name="insert" value="insert">
                         </tbody>

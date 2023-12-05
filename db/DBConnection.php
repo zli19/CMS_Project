@@ -50,7 +50,7 @@ class DBConnection
         }
     }
 
-    function queryObjectByAttribute(string $columnName, mixed $value, string $className)
+    function queryObjectsByAttribute(string $columnName, mixed $value, string $className)
     {
         $tableName = strtolower($className) . 's';
         $query = "SELECT * FROM {$tableName} WHERE {$columnName} = :{$columnName}";
@@ -58,8 +58,8 @@ class DBConnection
             $statement = $this->db->prepare($query);
             $statement->execute([$columnName => $value]);
             $statement->setFetchMode(PDO::FETCH_CLASS, "{$className}");
-            $object = $statement->fetch();
-            return $object;
+            $objects = $statement->fetchAll();
+            return $objects;
         } catch (PDOException $e) {
             exit($e->getMessage());
         }
@@ -89,8 +89,10 @@ class DBConnection
 
         try {
             $statement = $this->db->prepare($query);
-            $result = $statement->execute($keyValuePairs);
-            return $result;
+            if ($statement->execute($keyValuePairs)) {
+                return $this->db->lastInsertId();
+            }
+            return false;
         } catch (PDOException $e) {
             exit($e->getMessage());
         }

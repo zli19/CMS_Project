@@ -1,28 +1,22 @@
 <?php
-
+require_once('./db/DBConnection.php');
 class Room
 {
     public int $room_id;
     public string $room_name;
     public string $description;
-    public ?int $image_id;
-    public ?string $path;
 
     static function queryRoomById(int $id)
     {
-        require_once('./db/DBConnection.php');
-
         $db = new DBConnection();
 
-        $room = $db->queryObjectByAttribute('room_id', $id, 'Room');
+        $room = $db->queryObjectsByAttribute('room_id', $id, 'Room')[0];
         return $room;
     }
 
     // returns the number of reviews 'total' and 'avg' as the average star rating of the specified room
     static function queryRoomStatById(int $id)
     {
-        require_once('./db/DBConnection.php');
-
         $db = new DBConnection();
 
         $query = 'SELECT COUNT(1) AS total, ROUND(AVG(r.star_rating),1) AS avg FROM reviews r WHERE r.room_id = :room_id';
@@ -33,8 +27,6 @@ class Room
 
     static function queryRoomsOrderBy(array $orderBy)
     {
-        require_once('./db/DBConnection.php');
-
         $db = new DBConnection();
         $query = 'SELECT * FROM rooms';
         if (!empty($orderBy['name'])) {
@@ -46,8 +38,6 @@ class Room
 
     function insertRoom()
     {
-        require_once('./db/DBConnection.php');
-
         $db = new DBConnection();
 
         $KeyValuePairs = ['room_name' => $this->room_name, 'description' => $this->description];
@@ -57,8 +47,6 @@ class Room
 
     function updateRoom()
     {
-        require_once('./db/DBConnection.php');
-
         $db = new DBConnection();
 
         $setKeyValuePairs = ['room_name' => $this->room_name, 'description' => $this->description];
@@ -68,10 +56,30 @@ class Room
 
     function deleteRoom()
     {
-        require_once('./db/DBConnection.php');
-
         $db = new DBConnection();
         $result = $db->deleteObjectByAttribute('room_id', $this->room_id, 'Room');
         return $result;
+    }
+
+    function removeRoomAndItsImages()
+    {
+        require_once('./models/Image.php');
+
+        $images = Image::getImagesByAttribute('room_id', $this->room_id);
+        // Since images table is set to 'ON DELETE CASCADE', there's no need to delete images record individually.
+        // but still need to remove image files.
+        $result = $this->deleteRoom();
+        if ($result && !empty($images)) {
+            $return = true;
+            foreach ($images as $image) {
+                $r = unlink(realpath($image->path));
+                if (!$r && $return) {
+                    $return = false;
+                }
+            }
+            return $return;
+        } else {
+            return $result;
+        }
     }
 }

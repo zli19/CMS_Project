@@ -1,4 +1,5 @@
 <?php
+require_once('./models/Image.php');
 
 function handlePostFromRoomView()
 {
@@ -27,6 +28,12 @@ function handlePostFromRoomView()
         ) {
             $review->user_id = $_SESSION['user_id'];
             $result = $review->insertReview();
+            if ($result && !empty($_FILES['image']['tmp_name'][0])) {
+                $img = new Image;
+                $img->review_id = intval($result);
+                $destination = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'images';
+                $img->uploadImageTo($destination, [300, 1230]);
+            }
         }
 
         if (
@@ -52,11 +59,17 @@ function handlePostFromRoomView()
         $room->room_name = filter_input(INPUT_POST, 'room_name', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         $room->description = filter_input(INPUT_POST, 'description', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
-        if (!empty($_POST['update']) && !empty($room->room_name) && !empty($room->description)) {
+        if (!empty($_POST['update']) && !empty($room->room_id) && !empty($room->room_name) && !empty($room->description)) {
             $result = $room->updateRoom();
+            if ($result && !empty($_FILES['image']['tmp_name'][0])) {
+                $img = new Image;
+                $img->room_id = $room->room_id;
+                $destination = './images';
+                $img->uploadImageTo($destination, [100, 1230]);
+            }
         }
         if (!empty($_POST['delete']) && !empty($room->room_id)) {
-            $result = $room->deleteRoom();
+            $result = $room->removeRoomAndItsImages();
         }
     }
 
@@ -87,6 +100,12 @@ function handlePostFromIndex()
 
     if (!empty($_POST['insert']) && !empty($room->room_name) && !empty($room->description)) {
         $result = $room->insertRoom();
+        if ($result && !empty($_FILES['image']['tmp_name'][0])) {
+            $img = new Image;
+            $img->room_id = intval($result);
+            $destination = './images';
+            $img->uploadImageTo($destination, [100, 1230]);
+        }
     }
     return $result;
 }

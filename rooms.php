@@ -18,12 +18,17 @@ if ($_POST && $isLoggedIn) {
 } elseif ($_GET && filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT)) {
 
     require('./models/Room.php');
+
     $room_id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT);
 
     $rooms = Room::queryRoomsOrderBy([]);
     $room = Room::queryRoomById($room_id);
 
+
     if ($room) {
+        require('./models/Image.php');
+        $room_images = Image::getImagesByAttribute('room_id', $room_id, 1230);
+
         // Get the statistic of the room
         $stat = Room::queryRoomStatById($room_id);
 
@@ -57,6 +62,9 @@ if ($_POST && $isLoggedIn) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Molijun Inn</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/luminous-lightbox/2.0.1/luminous-basic.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/luminous-lightbox/2.0.1/Luminous.min.js"></script>
     <link rel="stylesheet" href="./main.css">
 </head>
 
@@ -98,7 +106,19 @@ if ($_POST && $isLoggedIn) {
         endif ?>
         <section class="flex flex-col items-center px-4 py-8 bg-white">
             <div class="w-4/5 max-w-5xl grid grid-cols-5 gap-8">
-                <div class="col-span-3 rounded-md overflow-hidden"><img src="./images/room1.jpg" alt=""></div>
+                <div class="col-span-3 rounded-md overflow-hidden">
+                    <ul>
+                        <?php $i = 0;
+                        foreach ($room_images as $room_image) : ?>
+                            <li class="<?= $i != 0 ? 'hidden' : '' ?>">
+                                <a class="gallery" href="<?= $room_image->path ?>">
+                                    <img src="<?= $room_image->path ?>" alt="">
+                                </a>
+                            </li>
+                        <?php $i++;
+                        endforeach ?>
+                    </ul>
+                </div>
                 <div class="col-span-2">
                     <div>
                         <?php for ($i = 0; $i < floor($stat['avg']); $i++) : ?>
@@ -124,7 +144,7 @@ if ($_POST && $isLoggedIn) {
                                     <input class="mb-2 w-full border border-gray-300 rounded" type="text" name="room_name" value="<?= $room->room_name ?>">
                                     <textarea class="w-full border border-gray-300 rounded" name="description" rows="8"><?= $room->description ?></textarea>
                                     <div>Pictures go here...</div>
-                                    <input type='file' name='images[]' id='image' multiple>
+                                    <input type='file' name='image[]' id='image' multiple>
                                     <input type="submit" class="btn" name="update" value="update" />
                                     <input type="submit" class="btn" name="delete" value="delete" onclick="e => handleDelete(e,'room')" />
                                     <input type="hidden" name="type" value="room">
@@ -179,7 +199,7 @@ if ($_POST && $isLoggedIn) {
                         <div class="grid grid-cols-4">
                             <div class="col-span-1">
                                 <div class="flex justify-start items-end">
-                                    <img src="./images/userIcons/default_icon_48.png" alt="">
+                                    <img src="./images/UserImages/default_icon_48.png" alt="">
                                     <h4 class="ml-4"><?= $_SESSION['user_name'] ?></h4>
                                 </div>
                             </div>
@@ -194,7 +214,7 @@ if ($_POST && $isLoggedIn) {
                                     <input class="mb-2 w-full border border-gray-300 rounded" type="number" min="1" max="5" placeholder="Give a star rating..." name="star_rating">
                                     <textarea class="w-full border border-gray-300 rounded" name="review_content" rows="5" placeholder="Write a comment about your stay..."></textarea>
                                     <div>Pictures go here...</div>
-                                    <input type='file' name='images[]' id='image' multiple>
+                                    <input type='file' name='image[]' id='image' multiple>
                                     <input type="submit" class="btn" name="insert" value="submit" />
                                     <input type="hidden" name="type" value="review">
                                 </form>
@@ -262,6 +282,9 @@ if ($_POST && $isLoggedIn) {
         </section>
     </main>
     <script src="./js/room.js"></script>
+    <script>
+        new LuminousGallery(document.querySelectorAll(".gallery"));
+    </script>
 </body>
 
 </html>
