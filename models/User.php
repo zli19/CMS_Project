@@ -76,7 +76,7 @@ class User
         if ($result && !empty($images)) {
             $return = true;
             foreach ($images as $image) {
-                $r = unlink(realpath($image->path));
+                $r = $image->removeImageFile();
                 if (!$r && $return) {
                     $return = false;
                 }

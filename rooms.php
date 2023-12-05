@@ -62,10 +62,9 @@ if ($_POST && $isLoggedIn) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Molijun Inn</title>
-
+    <link rel="stylesheet" href="./main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/luminous-lightbox/2.0.1/luminous-basic.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/luminous-lightbox/2.0.1/Luminous.min.js"></script>
-    <link rel="stylesheet" href="./main.css">
 </head>
 
 <body class="box-border bg-gray-100">
@@ -107,17 +106,29 @@ if ($_POST && $isLoggedIn) {
         <section class="flex flex-col items-center px-4 py-8 bg-white">
             <div class="w-4/5 max-w-5xl grid grid-cols-5 gap-8">
                 <div class="col-span-3 rounded-md overflow-hidden">
-                    <ul>
-                        <?php $i = 0;
-                        foreach ($room_images as $room_image) : ?>
-                            <li class="<?= $i != 0 ? 'hidden' : '' ?>">
-                                <a class="gallery" href="<?= $room_image->path ?>">
-                                    <img src="<?= $room_image->path ?>" alt="">
-                                </a>
-                            </li>
-                        <?php $i++;
-                        endforeach ?>
-                    </ul>
+                    <?php if (!empty($room_images)) : ?>
+                        <ul>
+                            <?php $i = 0;
+                            foreach ($room_images as $room_image) : ?>
+                                <li class="relative <?= $i != 0 ? 'hidden' : '' ?>">
+                                    <a class="gallery" href="<?= $room_image->path ?>">
+                                        <img src="<?= $room_image->path ?>" alt="">
+                                    </a>
+                                    <?php if ($isLoggedIn && $_SESSION['discriminator'] === 'admin') : ?>
+                                        <form class="text-sm absolute top-0 right-0" method="post">
+                                            <input type="hidden" name="type" value="image">
+                                            <input type="hidden" name="image_id" value="<?= $room_image->parent_img_id ?>">
+                                            <input type="submit" class="btn-secondary" name="delete" value="delete">
+                                        </form>
+                                    <?php endif ?>
+                                </li>
+                            <?php $i++;
+                            endforeach ?>
+                        </ul>
+                        <script>
+                            new LuminousGallery(document.querySelectorAll(".gallery"))
+                        </script>
+                    <?php endif ?>
                 </div>
                 <div class="col-span-2">
                     <div>
@@ -223,11 +234,12 @@ if ($_POST && $isLoggedIn) {
                     </div>
                 </li>
 
-                <?php foreach ($reviews as $review) : ?>
+                <?php foreach ($reviews as $review) :
+                    $images = Image::getImagesByAttribute('review_id', $review->review_id, 200); ?>
                     <li class="grid grid-cols-4 mb-4 bg-white rounded">
                         <div class="col-span-1">
                             <div class="flex justify-start items-end">
-                                <img src="./images/userIcons/default_icon_48.png" alt="">
+                                <img src="./images/userImages/default_icon_48.png" alt="">
                                 <h4 class="ml-4"><?= !empty($review->user_name) ? $review->user_name : 'deregistered user' ?></h4>
                             </div>
                             <p><?= $review->get_formatted_datetime() ?></p>
@@ -250,7 +262,28 @@ if ($_POST && $isLoggedIn) {
                                 <div class="hidden room_id"><?= $review->room_id ?></div>
                                 <div class="hidden star_rating"><?= $review->star_rating ?></div>
                                 <div class="review_content"><?= $review->review_content ?></div>
-                                <div class="pictures">pictures go here...</div>
+                                <div class="flex flex-wrap pictures">
+                                    <?php if (!empty($images)) : ?>
+                                        <?php foreach ($images as $image) :
+                                            $linkImgs = Image::getImagesByAttribute('parent_img_id', $image->parent_img_id, 1230) ?>
+                                            <span class="m-1 relative">
+                                                <a class="reviewGallery<?= $review->review_id ?>" href="<?= empty($linkImgs) ? '' : $linkImgs[0]->path ?>">
+                                                    <img class="min-w-fit border border-green-800 rounded" src="<?= $image->path ?>" alt="">
+                                                </a>
+                                                <?php if ($isLoggedIn && (($_SESSION['discriminator'] === 'customer' && $_SESSION['user_id'] === $review->user_id) || ($_SESSION['discriminator'] === 'admin'))) : ?>
+                                                    <form class="text-sm absolute top-0 right-0" method="post">
+                                                        <input type="hidden" name="type" value="image">
+                                                        <input type="hidden" name="image_id" value="<?= $image->parent_img_id ?>">
+                                                        <input type="submit" class="btn-secondary" name="delete" value="X">
+                                                    </form>
+                                                <?php endif ?>
+                                            </span>
+                                        <?php endforeach ?>
+                                        <script>
+                                            new LuminousGallery(document.querySelectorAll(".reviewGallery<?= $review->review_id ?>"))
+                                        </script>
+                                    <?php endif ?>
+                                </div>
                                 <div id="reply_<?= $review->review_id ?>">
                                     <!-- display reply if exists -->
                                     <div class="reply_info">
@@ -282,9 +315,6 @@ if ($_POST && $isLoggedIn) {
         </section>
     </main>
     <script src="./js/room.js"></script>
-    <script>
-        new LuminousGallery(document.querySelectorAll(".gallery"));
-    </script>
 </body>
 
 </html>

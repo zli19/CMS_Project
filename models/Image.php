@@ -28,12 +28,13 @@ class Image
         return $images;
     }
 
-    function getParentImages()
+    function removeImageFile()
     {
-        if (!empty($this->width) && !empty($this->parent_img_id)) {
-            $result = Image::getImagesByAttribute('image_id', $this->parent_img_id);
+        $result = false;
+        if (!empty($this->path)) {
+            $result = unlink($this->path);
         }
-        return empty($result) ? [] :  $result;
+        return $result;
     }
 
     private function getNumberOfImagesByAttribute($attributeName, $value)
@@ -83,11 +84,20 @@ class Image
 
     function removeImageAndFile()
     {
+        if (empty($this->width)) {
+            $children = Image::getImagesByAttribute('parent_img_id', $this->image_id);
+            if (!empty($children)) {
+                foreach ($children as $child) {
+                    $child->removeImageFile();
+                }
+            }
+        }
+
         $result = $this->deleteImage();
         if ($result) {
-            return unlink($this->path);
+            $this->removeImageFile();;
         }
-        return false;
+        return $result;
     }
 
     function uploadImageTo(string $destinationDir, array $resizeToWidthArray = [])
@@ -130,12 +140,12 @@ class Image
                                 $this->width = $width;
                                 $this->path = $destinationPath;
                                 $this->insertImage();
-                                $this->parent_img_id = null;
                                 $this->width = null;
                             }
                         }
                     }
                 }
+                $this->parent_img_id = null;
             }
         }
     }

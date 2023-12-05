@@ -40,32 +40,41 @@ require('./models/Image.php');
 </head>
 
 <body class="box-border bg-gray-100">
-    <header class="flex justify-center py-4">
-        <nav class="flex justify-between w-4/5 max-w-5xl">
-            <div>
+    <header>
+        <div class="flex justify-center py-4">
+            <nav class="flex justify-between w-4/5 max-w-5xl">
+                <div>
+                    <ul>
+                        <li class="inline-block mr-4">
+                            <a href=" ./index.php" style="text-decoration: none; color: black;">
+                                <h1 class="text-2xl font-bold">Molijun Inn</h1>
+                            </a>
+                        </li>
+                        <li class="inline-block font-mono  mr-4 hover:text-green-800 hover:underline">
+                            <a href="./reviews.php">Reviews</a>
+                        </li>
+                    </ul>
+                </div>
                 <ul>
-                    <li class="inline-block mr-4">
-                        <a href=" ./index.php" style="text-decoration: none; color: black;">
-                            <h1 class="text-2xl font-bold">Molijun Inn</h1>
-                        </a>
-                    </li>
-                    <li class="inline-block font-mono  mr-4 hover:text-green-800 hover:underline">
-                        <a href="./reviews.php">Reviews</a>
-                    </li>
-                </ul>
-            </div>
-            <ul>
-                <?php if ($isLoggedIn) :
-                    if ($_SESSION['discriminator'] === 'admin') : ?>
-                        <li class="inline-block btn-secondary text-sm"><a href="./admin.php">Edit Users</a></li>
+                    <?php if ($isLoggedIn) :
+                        if ($_SESSION['discriminator'] === 'admin') : ?>
+                            <li class="inline-block btn-secondary text-sm"><a href="./admin.php">Edit Users</a></li>
+                        <?php endif ?>
+                        <li class="inline-block font-mono text-sm ml-6"><span><?= $_SESSION['user_name'] ?></span></li>
+                        <li class="inline-block btn text-sm"><a href="./logout.php?location=<?= urlencode($_SERVER['REQUEST_URI']) ?>">Sign out</a></li>
+                    <?php else : ?>
+                        <li class="inline-block text-sm"><a href="./login.php" class="btn">sign in</a></li>
                     <?php endif ?>
-                    <li class="inline-block font-mono text-sm ml-6"><span><?= $_SESSION['user_name'] ?></span></li>
-                    <li class="inline-block btn text-sm"><a href="./logout.php?location=<?= urlencode($_SERVER['REQUEST_URI']) ?>">Sign out</a></li>
-                <?php else : ?>
-                    <li class="inline-block text-sm"><a href="./login.php" class="btn">sign in</a></li>
-                <?php endif ?>
-            </ul>
-        </nav>
+                </ul>
+            </nav>
+        </div>
+        <div class="bg-[url('./images/loons-hero.jpg')] bg-bottom bg-cover bg-no-repeat h-96 flex justify-center align-middle">
+            <div class="text-right text-gray-100 m-auto w-4/5 max-w-5xl">
+                <p class="w-full font-bold font-mono text-xl capitalize">
+                    Enjoy a relaxing stay at Molijun Inn.
+                </p>
+            </div>
+        </div>
     </header>
     <main>
         <?php if (isset($_SESSION['message'])) : ?>
@@ -75,17 +84,7 @@ require('./models/Image.php');
         <?php
             unset($_SESSION['message']);
         endif ?>
-        <section class="flex justify-center px-4 py-8 bg-white">
-            <div class="w-4/5 max-w-5xl lg:h-96 lg:grid lg:grid-cols-6 lg:gap-4">
-                <div class="lg:col-span-3 bg-slate-400"></div>
-                <div class="lg:col-span-1">
-                    <div class="bg-slate-400 w-48 h-32"></div>
-                    <div class="bg-slate-400 w-48 h-32"></div>
-                    <div class="bg-slate-400 w-48 h-32"></div>
-                </div>
-                <div class="lg:col-span-2"></div>
-            </div>
-        </section>
+
         <section class="flex justify-center px-4 py-8">
             <ul class="w-4/5 max-w-5xl">
                 <!-- display only when user is a administrator -->
@@ -105,19 +104,16 @@ require('./models/Image.php');
                 <?php endif ?>
                 <?php foreach ($rooms as $room) :
                     $stat = Room::queryRoomStatById($room->room_id);
-                    $images = Image::getImagesByAttribute('room_id', $room->room_id, 100);
-                    if (!empty($images)) {
-                        $image = $images[0];
-                    } ?>
+                    $images = Image::getImagesByAttribute('room_id', $room->room_id, 128); ?>
                     <a href="./rooms.php?id=<?= $room->room_id ?>">
                         <li class="px-4 py-4 grid grid-cols-4 mb-4 bg-white rounded shadow hover:shadow-md">
-                            <div class="col-span-1 font-bold">
+                            <div class="col-span-1 flex justify-center overflow-hidden">
                                 <?php if (!empty($images)) : ?>
-                                    <img src="<?= $images[0]->path ?>" alt="">
+                                    <img class="border border-green-800 rounded " src="<?= $images[0]->path ?>" alt="">
                                 <?php endif ?>
-                                <div><?= $room->room_name ?></div>
                             </div>
                             <div class="col-span-1">
+                                <div class="font-bold"><?= $room->room_name ?></div>
                                 <div id="avg">
                                     <?php if ($stat && $stat['total'] > 0) : ?>
                                         <?php for ($i = 0; $i < floor($stat['avg']); $i++) : ?>

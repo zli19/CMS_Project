@@ -97,8 +97,8 @@ const handleChange = (e) => {
 
 let ratingSelect = document.getElementById("rating");
 let orderBySelect = document.getElementById("orderBy");
-ratingSelect.addEventListener("change", handleChange);
-orderBySelect.addEventListener("change", handleChange);
+if (ratingSelect) ratingSelect.addEventListener("change", handleChange);
+if (orderBySelect) orderBySelect.addEventListener("change", handleChange);
 
 const handleDelete = (event, name) => {
   if (name === "review")

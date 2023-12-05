@@ -108,7 +108,7 @@ class DBConnection
         $setString = substr($setString, 0, -2);
 
         $query = "UPDATE {$tableName} SET {$setString} WHERE {$columnName} = :{$columnName}";
-        var_dump($query);
+
         try {
             $statement = $this->db->prepare($query);
             $result = $statement->execute([$columnName => $value]);

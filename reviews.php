@@ -39,7 +39,7 @@ if (!empty($_GET['orderBy'])) {
 $reviews = Review::queryReviewsWithRoomOrRatingWithOrderBy($search, $idOrRating, $orderBy);
 require('./models/Room.php');
 $rooms = Room::queryRoomsOrderBy([]);
-
+require('./models/Image.php');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -49,7 +49,8 @@ $rooms = Room::queryRoomsOrderBy([]);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Molijun Inn</title>
     <link rel="stylesheet" href="./main.css">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/luminous-lightbox/2.0.1/luminous-basic.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/luminous-lightbox/2.0.1/Luminous.min.js"></script>
 </head>
 
 <body>
@@ -138,7 +139,7 @@ $rooms = Room::queryRoomsOrderBy([]);
                     <div class="grid grid-cols-4">
                         <div class="col-span-1">
                             <div class="flex justify-start items-end">
-                                <img src="./images/userIcons/default_icon_48.png" alt="">
+                                <img src="./images/userImages/default_icon_48.png" alt="">
                                 <h4 class="ml-4"><?= $_SESSION['user_name'] ?></h4>
                             </div>
                         </div>
@@ -153,7 +154,7 @@ $rooms = Room::queryRoomsOrderBy([]);
                                 <input class="mb-2 w-full border border-gray-300 rounded" type="number" min="1" max="5" placeholder="Give a star rating..." name="star_rating">
                                 <textarea class="w-full border border-gray-300 rounded" name="review_content" rows="5" placeholder="Write a comment about your stay..."></textarea>
                                 <div>Pictures go here...</div>
-                                <input type='file' name='images[]' id='image' multiple>
+                                <input type='file' name='image[]' id='image' multiple>
                                 <input type="submit" class="btn" name="insert" value="submit" />
                                 <input type="hidden" name="type" value="review">
                             </form>
@@ -162,11 +163,12 @@ $rooms = Room::queryRoomsOrderBy([]);
                 </div>
             </li>
 
-            <?php foreach ($reviews as $review) : ?>
+            <?php foreach ($reviews as $review) :
+                $images = Image::getImagesByAttribute('review_id', $review->review_id, 200); ?>
                 <li class="grid grid-cols-4 mb-4 bg-white rounded">
                     <div class="col-span-1">
                         <div class="flex justify-start items-end">
-                            <img src="./images/userIcons/default_icon_48.png" alt="">
+                            <img src="./images/userImages/default_icon_48.png" alt="">
                             <?php if (empty($review->user_name)) : ?>
                                 <h4 class="ml-4 text-gray-400">deregistered user</h4>
                             <?php else : ?>
@@ -195,7 +197,28 @@ $rooms = Room::queryRoomsOrderBy([]);
                             <div class="hidden room_id"><?= $review->room_id ?></div>
                             <div class="hidden star_rating"><?= $review->star_rating ?></div>
                             <div class="review_content"><?= $review->review_content ?></div>
-                            <div class="pictures">pictures go here...</div>
+                            <div class="flex flex-wrap pictures">
+                                <?php if (!empty($images)) : ?>
+                                    <?php foreach ($images as $image) :
+                                        $linkImgs = Image::getImagesByAttribute('parent_img_id', $image->parent_img_id, 1230) ?>
+                                        <span class="m-1 relative">
+                                            <a class="reviewGallery<?= $review->review_id ?>" href="<?= empty($linkImgs) ? '' : $linkImgs[0]->path ?>">
+                                                <img class="min-w-fit border border-green-800 rounded" src="<?= $image->path ?>" alt="">
+                                            </a>
+                                            <?php if ($isLoggedIn && (($_SESSION['discriminator'] === 'customer' && $_SESSION['user_id'] === $review->user_id) || ($_SESSION['discriminator'] === 'admin'))) : ?>
+                                                <form class="text-sm absolute top-0 right-0" method="post">
+                                                    <input type="hidden" name="type" value="image">
+                                                    <input type="hidden" name="image_id" value="<?= $image->parent_img_id ?>">
+                                                    <input type="submit" class="btn-secondary" name="delete" value="X">
+                                                </form>
+                                            <?php endif ?>
+                                        </span>
+                                    <?php endforeach ?>
+                                    <script>
+                                        new LuminousGallery(document.querySelectorAll(".reviewGallery<?= $review->review_id ?>"))
+                                    </script>
+                                <?php endif ?>
+                            </div>
                             <div id="reply_<?= $review->review_id ?>">
                                 <!-- display reply if exists -->
                                 <div class="reply_info">

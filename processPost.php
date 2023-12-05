@@ -31,8 +31,8 @@ function handlePostFromRoomView()
             if ($result && !empty($_FILES['image']['tmp_name'][0])) {
                 $img = new Image;
                 $img->review_id = intval($result);
-                $destination = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'images';
-                $img->uploadImageTo($destination, [300, 1230]);
+                $destination = './images';
+                $img->uploadImageTo($destination, [200, 1230]);
             }
         }
 
@@ -44,9 +44,15 @@ function handlePostFromRoomView()
             !empty($review->review_content)
         ) {
             $result = $review->updateReview();
+            if ($result && !empty($_FILES['image']['tmp_name'][0])) {
+                $img = new Image;
+                $img->review_id = $review->review_id;
+                $destination = './images';
+                $img->uploadImageTo($destination, [200, 1230]);
+            }
         }
         if (!empty($_POST['delete']) && $review->review_id) {
-            $result = $review->deleteReview();
+            $result = $review->removeReviewAndItsImages();
         }
     }
 
@@ -65,7 +71,7 @@ function handlePostFromRoomView()
                 $img = new Image;
                 $img->room_id = $room->room_id;
                 $destination = './images';
-                $img->uploadImageTo($destination, [100, 1230]);
+                $img->uploadImageTo($destination, [128, 1230]);
             }
         }
         if (!empty($_POST['delete']) && !empty($room->room_id)) {
@@ -83,6 +89,16 @@ function handlePostFromRoomView()
 
         if (!empty($_POST['insert']) && $reply) {
             $result = $reply->insertReply();
+        }
+    }
+
+    if ($type === 'image') {
+        $image_id = filter_input(INPUT_POST, 'image_id', FILTER_VALIDATE_INT) ? filter_input(INPUT_POST, 'image_id', FILTER_SANITIZE_NUMBER_INT) : null;
+        if (!empty($_POST['delete']) && $image_id) {
+            $images = Image::getImagesByAttribute('image_id', $image_id);
+            if (!empty($images)) {
+                $result = $images[0]->removeImageAndFile();
+            }
         }
     }
 
@@ -104,7 +120,7 @@ function handlePostFromIndex()
             $img = new Image;
             $img->room_id = intval($result);
             $destination = './images';
-            $img->uploadImageTo($destination, [100, 1230]);
+            $img->uploadImageTo($destination, [128, 1230]);
         }
     }
     return $result;
